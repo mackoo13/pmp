@@ -1,4 +1,4 @@
-class Ordinal(object):
+class Ordinal:
     def __init__(self, order):
         self.order = list(order)
 
