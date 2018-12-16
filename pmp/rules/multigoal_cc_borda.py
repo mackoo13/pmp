@@ -1,6 +1,7 @@
+from .._common import solve_methods_registry
 import numpy as np
 from itertools import chain, product
-from .._common import solve_methods_registry
+import numpy as np
 
 from .threshold_rule import ThresholdRule
 from .multigoal_rule import MultigoalRule
@@ -98,3 +99,31 @@ class MultigoalCCBorda(MultigoalRule):
         committee = (i for i in range(m) if abs(solution['x{}'.format(i)] - 1) <= 1e-05)
 
         return committee
+
+    @algorithm('Approx_Greedy')
+    def _greedy(self, k, profile):
+        satisfactions = np.zeros((len(profile.preferences), profile.num_cand))
+        for v, pref in enumerate(profile.preferences):
+            for score, c in enumerate(pref.order):
+                satisfactions[v][c] = len(pref.order) - 1 - score
+
+        committee = set()
+        candidates = set(profile.candidates)
+
+        while len(committee) < k:
+            best_candidate = None
+            best_income = 0
+
+            for c in candidates:
+                income = sum(satisfactions[:, c])
+                if income > best_income:
+                    best_candidate = c
+                    best_income = income
+
+            committee.add(best_candidate)
+            candidates.remove(best_candidate)
+
+            satisfactions -= satisfactions[:, best_candidate][:, np.newaxis]
+            np.clip(satisfactions, 0, None, out=satisfactions)
+
+        return [committee]
