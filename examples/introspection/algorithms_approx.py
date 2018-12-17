@@ -27,6 +27,6 @@ profile = Profile(candidates, preferences)
 
 ccb = CCB(8, 8)
 
-committee = ccb.find_committees(k, profile, method='Approx_Greedy')
+committee = ccb.find_committees(k, profile, method='Approx_P')
 print('Points:', ccb.scores)
 print('Selected committees:', committee)

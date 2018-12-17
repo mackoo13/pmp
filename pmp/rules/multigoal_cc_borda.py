@@ -1,5 +1,5 @@
+from scipy.special import lambertw
 from .._common import solve_methods_registry
-import numpy as np
 from itertools import chain, product
 import numpy as np
 
@@ -125,5 +125,28 @@ class MultigoalCCBorda(MultigoalRule):
 
             satisfactions -= satisfactions[:, best_candidate][:, np.newaxis]
             np.clip(satisfactions, 0, None, out=satisfactions)
+
+        return [committee]
+
+    @algorithm('Approx_P')
+    def _p(self, k, profile):
+        x = int(np.math.ceil(profile.num_cand * lambertw(k) / k))
+        top_candidates = [p.order[:x] for p in profile.preferences]
+        unique, counts = np.unique(top_candidates, return_counts=True)
+        counts = dict(zip(unique, counts))
+        counts = [counts[i] if i in counts else 0 for i in range(profile.num_cand)]
+
+        committee = set()
+
+        while len(committee) < k:
+            best_candidate = np.argmax(counts)
+
+            for i, v in enumerate(top_candidates):
+                if best_candidate in v:
+                    for c in v:
+                        counts[c] -= 1
+                    top_candidates[i] = []
+
+            committee.add(best_candidate)
 
         return [committee]
