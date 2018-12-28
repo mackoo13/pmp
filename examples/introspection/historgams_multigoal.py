@@ -21,11 +21,14 @@ rule2 = Borda
 # rule2 = Borda
 
 r1_percentage = 100
-r2_percentage = 0
+r2_percentage = 90
 distribution = generate_uniform
-repetitions = 500
 
-generate_winner_files(current_dir, m, n, k, multigoal_rule, rule1, rule2, r1_percentage, r2_percentage, distribution, repetitions)
+repetitions = 100
+
+
+generate_winner_files(current_dir, m, n, k, multigoal_rule, rule1, rule2, r1_percentage, r2_percentage,
+                      distribution, repetitions, log_errors=True)
 draw_histogram(current_dir, multigoal_rule, k, r1_percentage, r2_percentage, repetitions)
 delete_winner_files(current_dir, multigoal_rule, k, r1_percentage, r2_percentage, repetitions)
 

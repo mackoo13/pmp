@@ -63,8 +63,8 @@ def mw2d_generate_histogram(filename, reps):
                 count += 1
                 if HISTOGRAM[int(y)][int(x)] > MAX:
                     MAX = HISTOGRAM[int(y)][int(x)]
-        except:
-            print "No file", filename + "-" + str(i)
+        except IOError:
+            print "No file", filename + "-" + str(i) + ".win"
 
     print "MAX = ", MAX
 
