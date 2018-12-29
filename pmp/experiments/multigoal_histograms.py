@@ -39,7 +39,7 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, rule1, rule2, r1
         rule2_best = get_best_score(rule2(), profile, k)
         rule1_threshold = rule1_best * r1_percentage / 100
         rule2_threshold = rule2_best * r2_percentage / 100
-        rule = multigoal_rule(s1=rule1_threshold, s2=rule2_threshold, log_errors=log_errors)
+        rule = multigoal_rule((rule1_threshold, rule2_threshold), log_errors=log_errors)
 
         try:
             committee = list(rule.find_committees(k, profile, method='ILP'))
