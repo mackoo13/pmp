@@ -1,3 +1,4 @@
+from __future__ import division
 from scipy.special import lambertw
 from .._common import solve_methods_registry
 from itertools import chain, product
@@ -102,8 +103,36 @@ class MultigoalCCBorda(MultigoalRule):
 
     @algorithm('Approx_Greedy')
     def _greedy(self, k, profile):
-        raise NotImplemented
+        k_cc = int(np.ceil(np.real(lambertw(1)) * k))
+        print('Greedy: selecting {} candidates with CC Greedy and {} candidates with Borda'.format(k_cc, k - k_cc))
+
+        committee = set(self.rules[0].rule.find_committee(k_cc, profile, method='Approx_Greedy'))
+
+        self.rules[1].rule.initialise_weights(k, profile)
+        self.rules[1].rule.compute_candidate_scores(k, profile)
+
+        for cand in sorted(profile.scores, key=lambda c: profile.scores.get(c), reverse=True):
+            committee.add(cand)
+            if len(committee) == k:
+                return committee
 
     @algorithm('Approx_P')
     def _p(self, k, profile):
-        raise NotImplemented
+        x = int(np.math.ceil(profile.num_cand * np.real(lambertw(k)) / k))
+        A = 1 - (np.real(lambertw(k))) / k
+        M = 1 - (profile.num_cand - x) / (profile.num_cand - 1)
+        C = np.log(A) * k * (M - 1) * np.power(A, k * M)
+        l_cc = M - np.real(lambertw(C)) / (np.log(A) * k)
+        k_cc = int(np.ceil(l_cc * k))
+        print('P: selecting {} candidates with CC Greedy and {} candidates with Borda'.format(k_cc, k - k_cc))
+
+        committee = self.rules[0].rule.find_committee(k, profile, method='Approx_P')
+        committee = set(committee[:k_cc])
+
+        self.rules[1].rule.initialise_weights(k, profile)
+        self.rules[1].rule.compute_candidate_scores(k, profile)
+
+        for cand in sorted(profile.scores, key=lambda c: profile.scores.get(c), reverse=True):
+            committee.add(cand)
+            if len(committee) == k:
+                return committee

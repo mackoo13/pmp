@@ -1,22 +1,17 @@
 from pmp.rules import MultigoalCCBorda, Borda, ChamberlinCourant
 from pmp.preferences import Ordinal, Profile
 
-# In case of CCB default is ILP
-# Let's give a try Bruteforce implementation
-
-n = 5
-m = 3
-k = 2
+k = 4
 orders = [
-    [1, 2, 0],
-    [2, 1, 0],
-    [2, 0, 1],
-    [1, 2, 0],
-    [1, 0, 2]
+    [1, 5, 4, 3, 2, 0],
+    [2, 3, 1, 0, 4, 5],
+    [4, 3, 2, 5, 0, 1],
+    [1, 2, 5, 4, 0, 3],
+    [1, 5, 0, 2, 3, 4]
 ]
 
 preferences = [Ordinal(o) for o in orders]
-candidates = [0, 1, 2]
+candidates = [0, 1, 2, 3, 4, 5]
 
 profile = Profile(candidates, preferences)
 

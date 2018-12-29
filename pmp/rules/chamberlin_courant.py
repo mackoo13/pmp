@@ -112,7 +112,7 @@ class ChamberlinCourant(Rule):
             for pos, c in enumerate(pref.order):
                 satisfactions[v][c] = len(pref.order) - 1 - pos
 
-        committee = set()
+        committee = []
         candidates = set(profile.candidates)
 
         while len(committee) < k:
@@ -125,13 +125,13 @@ class ChamberlinCourant(Rule):
                     best_candidate = c
                     best_income = income
 
-            committee.add(best_candidate)
+            committee.append(best_candidate)
             candidates.remove(best_candidate)
 
             satisfactions -= satisfactions[:, best_candidate][:, np.newaxis]
             np.clip(satisfactions, 0, None, out=satisfactions)
 
-        return list(committee)
+        return committee
 
     @algorithm('Approx_P')
     def _p(self, k, profile):
@@ -142,7 +142,7 @@ class ChamberlinCourant(Rule):
         counts = dict(zip(unique, counts))
         counts = [counts[i] if i in counts else 0 for i in range(profile.num_cand)]
 
-        committee = set()
+        committee = []
         while len(committee) < k:
             best_candidate = np.argmax(counts)
 
@@ -152,9 +152,9 @@ class ChamberlinCourant(Rule):
                         counts[c] -= 1
                     top_x_candidates[i] = []
 
-            committee.add(best_candidate)
+            committee.append(best_candidate)
 
-        return list(committee)
+        return committee
 
     def compute_scores(self, k, profile):
         scores = {}
