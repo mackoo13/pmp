@@ -5,6 +5,7 @@ from cplex.exceptions import CplexSolverError
 from pmp.experiments import generate_uniform
 from pmp.experiments.experiment import preference_orders
 from pmp.preferences import Profile
+from pmp.rules.utils import get_best_score
 
 
 def get_profile(voters_number, candidates_number):
@@ -13,11 +14,6 @@ def get_profile(voters_number, candidates_number):
     preferences = preference_orders(candidates, voters)
     candidates = list(range(candidates_number))
     return Profile(candidates, preferences)
-
-
-def get_best_score(rule, profile, k):
-    best_committee = list(rule.find_committee(k, profile))
-    return rule.committee_score(best_committee, profile)
 
 
 def plot(x, y, e, rule1, rule2, title=""):
