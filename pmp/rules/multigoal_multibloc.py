@@ -1,20 +1,20 @@
+from pmp.rules.tbloc import TBloc
 from .._common import solve_methods_registry
 
 from .threshold_rule import ThresholdRule
 from .multigoal_rule import MultigoalRule
-from .borda import Borda
-from .bloc import Bloc
 
 algorithm = solve_methods_registry()
 
 
-class MultigoalBlocBorda(MultigoalRule):
+class MultigoalTBloc(MultigoalRule):
+    """Multi-Bloc Voting Rule."""
+
     methods = algorithm.registry
 
-    def __init__(self, (s1, s2)=(0, 0), weights=None, log_errors=True):
+    def __init__(self, thresholds, weights=None, log_errors=True):
         MultigoalRule.__init__(self,
-                               [ThresholdRule(Bloc(), s1),
-                                ThresholdRule(Borda(), s2)],
+                               [ThresholdRule(TBloc(i + 1), t) for i, t in enumerate(thresholds)],
                                log_errors=log_errors)
         self.weights = weights
 
@@ -26,9 +26,9 @@ class MultigoalBlocBorda(MultigoalRule):
         return committee
 
     @algorithm('Bruteforce', 'Exponential.')
-    def _brute_bloc_borda(self, k, profile):
+    def _brute_tbloc(self, k, profile):
         return self._brute(k, profile)
 
     @algorithm('ILP', default=True)
-    def _ilp(self, k, profile):
+    def _ilp_tbloc(self, k, profile):
         return self._ilp_weakly_separable(k, profile)
