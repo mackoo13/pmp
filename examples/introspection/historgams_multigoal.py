@@ -8,7 +8,7 @@ current_dir = os.path.dirname(current_file)
 
 
 # Configuration
-m = 100   # candidates number
+m = 2   # candidates number
 n = 200   # voters number
 k = 20   # committee_size
 
@@ -24,11 +24,11 @@ r1_percentage = 100
 r2_percentage = 90
 distribution = generate_uniform
 
-repetitions = 100
+repetitions = 1000
 
 
-generate_winner_files(current_dir, m, n, k, multigoal_rule, rule1, rule2, r1_percentage, r2_percentage,
-                      distribution, repetitions, log_errors=True)
-draw_histogram(current_dir, multigoal_rule, k, r1_percentage, r2_percentage, repetitions)
-delete_winner_files(current_dir, multigoal_rule, k, r1_percentage, r2_percentage, repetitions)
+generate_winner_files(current_dir, m, n, k, multigoal_rule, [r1_percentage, r2_percentage], distribution,
+                      repetitions, log_errors=True)
+draw_histogram(current_dir, multigoal_rule, k, [r1_percentage, r2_percentage], distribution, repetitions)
+delete_winner_files(current_dir, multigoal_rule, k, [r1_percentage, r2_percentage], distribution, repetitions)
 

@@ -6,20 +6,44 @@ from pmp.MW2D import mw2d_generate_histogram, mw2d_draw_histogram
 from pmp.experiments.experiment import preference_orders
 from pmp.preferences import Profile
 from pmp.MW2D.pref import create_pref_orders
+from pmp.rules import ChamberlinCourant, Borda, Bloc
 from pmp.rules.utils import get_best_score
 
 
-def generate_winner_files(current_dir, m, n, k, multigoal_rule, rule1, rule2, r1_percentage, r2_percentage,
+def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
                           distribution, reps, log_errors=False):
-    for repetition in range(1, reps + 1):
 
-        out_filename = '{}_{}_{}_k{}-{}.win'.format(multigoal_rule.__name__, r1_percentage, r2_percentage,
-                                                    k, repetition)
+    rule_name = multigoal_rule.__name__
+    distribution_name = get_distribution_name(distribution)
+
+    if rule_name == 'MultigoalBlocBorda':
+        rules = (Bloc(), Borda())
+    elif rule_name == 'MultigoalCCBorda':
+        rules = (ChamberlinCourant(), Borda())
+    else:
+        rules = [Bloc() for _ in percentages]
+
+    perc = '_'.join([str(p) for p in percentages])
+    repetition = 1
+    while repetition <= reps:
+
+        out_filename = '{}_{}_{}_k{}-{}.win'.format(rule_name, distribution_name, perc, k, repetition)
         tmp_filename = 'tmp.in'
 
         # Generating candidates, voters and their preferences
-        voters = distribution(-3, -3, 3, 3, n, 'None')
-        candidates = distribution(-3, -3, 3, 3, m, 'None')
+        if distribution.__name__ == 'generate_uniform':
+            voters = distribution(-3, -3, 3, 3, n, 'None')
+            candidates = distribution(-3, -3, 3, 3, m, 'None')
+            distribution_name = 'square'
+        elif distribution.__name__ == 'generate_circle':
+            voters = distribution(0, 0, 3, n, 'None')
+            candidates = distribution(0, 0, 3, m, 'None')
+            distribution_name = 'circle'
+        else:
+            voters = distribution(0, 0, 1, n, 'None')
+            candidates = distribution(0, 0, 1, m, 'None')
+            distribution_name = 'gauss'
+
         preferences = preference_orders(candidates, voters)
         candidates_list = list(range(m))
         profile = Profile(candidates_list, preferences)
@@ -35,11 +59,16 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, rule1, rule2, r1
                 f.write('{} {}\n'.format(voter[0], voter[1]))
 
         # Computing winning committee based on given parameters
-        rule1_best = get_best_score(rule1(), profile, k)
-        rule2_best = get_best_score(rule2(), profile, k)
-        rule1_threshold = rule1_best * r1_percentage / 100
-        rule2_threshold = rule2_best * r2_percentage / 100
-        rule = multigoal_rule((rule1_threshold, rule2_threshold), log_errors=log_errors)
+        rules_thresholds = []
+        for i, p in enumerate(percentages):
+            if rule_name == 'MultigoalTBloc':
+                rule_best = get_best_score(rules[i], profile, i + 1)
+            else:
+                rule_best = get_best_score(rules[i], profile, k)
+            rule_threshold = rule_best * percentages[i] / 100
+            rules_thresholds.append(rule_threshold)
+
+        rule = multigoal_rule(rules_thresholds, log_errors=log_errors)
 
         try:
             committee = list(rule.find_committees(k, profile, method='ILP'))
@@ -50,15 +79,18 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, rule1, rule2, r1
                 for c in committee:
                     out_file.write('{}\t{} {}\n'.format(c, candidates_map[c][0], candidates_map[c][1]))
             print('Generated: {}'.format(out_filename))
-
+            repetition += 1
         except CplexSolverError:
             continue
         finally:
             os.remove(tmp_filename)
 
 
-def draw_histogram(current_dir, multigoal_rule, k, r1, r2, reps, threshold=None):
-    winner_filename = '{}_{}_{}_k{}'.format(multigoal_rule.__name__, r1, r2, k)
+def draw_histogram(current_dir, multigoal_rule, k, percentages, distribution, reps, threshold=None):
+    distribution_name = get_distribution_name(distribution)
+    perc = '_'.join([str(p) for p in percentages])
+
+    winner_filename = '{}_{}_{}_k{}'.format(multigoal_rule.__name__, distribution_name, perc, k)
     file_path = os.path.join(current_dir, winner_filename)
     mw2d_generate_histogram(file_path, reps)
 
@@ -68,12 +100,21 @@ def draw_histogram(current_dir, multigoal_rule, k, r1, r2, reps, threshold=None)
     os.remove(histogram_filename)
 
 
-def delete_winner_files(current_dir, multigoal_rule, k, r1, r2, reps):
+def delete_winner_files(current_dir, multigoal_rule, k, percentages, distribution, reps):
+    distribution_name = get_distribution_name(distribution)
+    perc = '_'.join([str(p) for p in percentages])
     for r in range(1, reps + 1):
-        winner_filename = '{}_{}_{}_k{}-{}.win'.format(multigoal_rule.__name__, r1, r2, k, r)
+        winner_filename = '{}_{}_{}_k{}-{}.win'.format(multigoal_rule.__name__, distribution_name, perc, k, r)
         file_path = os.path.join(current_dir, winner_filename)
         try:
             os.remove(file_path)
         except OSError:
             pass
 
+
+def get_distribution_name(distribution):
+    if distribution.__name__ == 'generate_uniform':
+        return 'square'
+    elif distribution.__name__ == 'generate_circle':
+        return'circle'
+    return 'gauss'
