@@ -1,5 +1,6 @@
 from itertools import combinations, product, chain
 from operator import itemgetter
+from scipy.special import lambertw
 
 import numpy as np
 from six import iteritems
@@ -99,6 +100,60 @@ class ChamberlinCourant(Rule):
         committee = (i for i in range(m) if abs(solution['x{}'.format(i)] - 1) <= 1e-05)
 
         self.scores[committee] = model.get_objective_value()
+        return committee
+
+    @algorithm('Approx_Greedy')
+    def _greedy(self, k, profile):
+        # satisfactions may be interpreted as follows: if we add candidate c to existing committee, its score will
+        # increase by satisfactions[v][c] for each voter v. Initially, the committee is empty, so the array holds the
+        # points assigned to each candidate by each voter.
+        satisfactions = np.zeros((len(profile.preferences), profile.num_cand))
+        for v, pref in enumerate(profile.preferences):
+            for pos, c in enumerate(pref.order):
+                satisfactions[v][c] = len(pref.order) - 1 - pos
+
+        committee = []
+        candidates = set(profile.candidates)
+
+        while len(committee) < k:
+            best_candidate = None
+            best_income = 0
+
+            for c in candidates:
+                income = sum(satisfactions[:, c])
+                if income > best_income:
+                    best_candidate = c
+                    best_income = income
+
+            committee.append(best_candidate)
+            candidates.remove(best_candidate)
+
+            satisfactions -= satisfactions[:, best_candidate][:, np.newaxis]
+            np.clip(satisfactions, 0, None, out=satisfactions)
+
+        return committee
+
+    @algorithm('Approx_P')
+    def _p(self, k, profile):
+        x = int(np.math.ceil(profile.num_cand * np.real(lambertw(k)) / k))
+        top_x_candidates = [p.order[:x] for p in profile.preferences]
+
+        unique, counts = np.unique(top_x_candidates, return_counts=True)
+        counts = dict(zip(unique, counts))
+        counts = [counts[i] if i in counts else 0 for i in range(profile.num_cand)]
+
+        committee = []
+        while len(committee) < k:
+            best_candidate = np.argmax(counts)
+
+            for i, v in enumerate(top_x_candidates):
+                if best_candidate in v:
+                    for c in v:
+                        counts[c] -= 1
+                    top_x_candidates[i] = []
+
+            committee.append(best_candidate)
+
         return committee
 
     def compute_scores(self, k, profile):
