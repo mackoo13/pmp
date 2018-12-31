@@ -1,26 +1,34 @@
 from pmp.experiments import generate_uniform, generate_gauss, generate_circle, generate_winner_files, draw_histogram, \
     delete_winner_files
-from pmp.rules import MultigoalBlocBorda as BB, MultigoalTBloc
-from pmp.rules import MultigoalCCBorda as CCB
+from pmp.rules import MultigoalBlocBorda, MultigoalTBloc,  MultigoalCCBorda
 import os
 
 current_file = os.path.abspath(__file__)
 current_dir = os.path.dirname(current_file)
+print(current_dir)
+print(current_file)
 
 
 # Configuration
-m = 2   # candidates number
+m = 200   # candidates number
 n = 200   # voters number
-k = 2   # committee_size
+k = 20   # committee_size
 
+repetitions = 200
 distributions = [generate_uniform, generate_circle, generate_gauss]
-repetitions = 500
 rules = [MultigoalTBloc, ]
+
+# BB, CCb percentages
 # percentages = [(0, 100), (80, 80), (90, 90), (90, 95), (95, 90), (100, 0), ]    # BB, CCB
-# percentages = [(80, 80, 80), (90, 90, 90), (90, 95, 90), (95, 90, 90), (90, 90, 95), (100, 0, 0), (0, 100, 0), (0, 0, 100), ]
-th = [0] * (k - 1)
-th.append(100)
-percentages = [[95] * k, th, ]
+
+# Multibloc percentages
+percentages = [[0] * (k - 1) + [100],
+               [100] + [0] * (k - 1),
+               [0] + [i for i in range(0, 96, 5)],
+               [i for i in range(95, -1, -5)] + [0],
+               [85] * k,
+               [0] * (k / 2) + [95] * (k / 2),
+               [90] * (k / 2) + [0] * (k / 2), ]
 
 for multigoal_rule in rules:
     for distribution in distributions:

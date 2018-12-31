@@ -7,6 +7,7 @@ from pmp.experiments.experiment import preference_orders
 from pmp.preferences import Profile
 from pmp.MW2D.pref import create_pref_orders
 from pmp.rules import ChamberlinCourant, Borda, Bloc
+from pmp.rules.tbloc import TBloc
 from pmp.rules.utils import get_best_score
 
 
@@ -21,14 +22,16 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
     elif rule_name == 'MultigoalCCBorda':
         rules = (ChamberlinCourant(), Borda())
     else:
-        rules = [Bloc() for _ in percentages]
+        rules = [TBloc(i + 1) for i, _ in enumerate(percentages)]
 
     perc = '_'.join([str(p) for p in percentages])
     repetition = 1
     while repetition <= reps:
 
         out_filename = '{}_{}_{}_k{}-{}.win'.format(rule_name, distribution_name, perc, k, repetition)
+        out_filename = os.path.join(current_dir, out_filename)
         tmp_filename = 'tmp.in'
+        tmp_filename = os.path.join(current_dir, tmp_filename)
 
         # Generating candidates, voters and their preferences
         if distribution.__name__ == 'generate_uniform':
@@ -50,7 +53,6 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
         candidates_map = {c: (candidates[c][0], candidates[c][1])for c in candidates_list}
 
         # Creating temporary file with voters and candidates
-        tmp_file_path = os.path.join(current_dir, tmp_filename)
         with open(tmp_filename, 'w') as f:
             f.write('{} {}\n'.format(m, n))
             for i, candidate in enumerate(candidates):
@@ -61,10 +63,7 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
         # Computing winning committee based on given parameters
         rules_thresholds = []
         for i, p in enumerate(percentages):
-            if rule_name == 'MultigoalTBloc':
-                rule_best = get_best_score(rules[i], profile, i + 1)
-            else:
-                rule_best = get_best_score(rules[i], profile, k)
+            rule_best = get_best_score(rules[i], profile, k)
             rule_threshold = rule_best * percentages[i] / 100
             rules_thresholds.append(rule_threshold)
 
@@ -74,7 +73,7 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
             committee = list(rule.find_committees(k, profile, method='ILP'))
             # Creating winners file
             with open(out_filename, 'w') as out_file:
-                preference = create_pref_orders(tmp_file_path, k)
+                preference = create_pref_orders(tmp_filename, k)
                 out_file.write(preference)
                 for c in committee:
                     out_file.write('{}\t{} {}\n'.format(c, candidates_map[c][0], candidates_map[c][1]))

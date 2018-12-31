@@ -7,9 +7,9 @@ class Borda(WeaklySeparable):
     def initialise_weights(self, _k, profile):
         self.weights = self._borda_weights(len(profile.candidates))
 
-    def find_committee(self, k, profile):
+    def find_committee(self, k, profile, random_winning_committee=False):
         self.initialise_weights(k, profile)
-        committee = WeaklySeparable.find_committee(self, k, profile)
+        committee = WeaklySeparable.find_committee(self, k, profile, random_winning_committee)
         return committee
 
     def compute_score(self, candidate, k, profile):
