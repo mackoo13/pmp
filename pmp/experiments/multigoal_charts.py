@@ -16,18 +16,22 @@ def get_profile(voters_number, candidates_number):
     return Profile(candidates, preferences)
 
 
-def plot(x, y, e, rule1, rule2, title=""):
+def plot(x, y, rule1_name, rule2_name, title=""):
     axes = plt.gca()
     axes.set_xlim([0, 100])
-    plt.xlabel(rule2.__class__.__name__)
-    axes.set_ylim([0, y[0] + e[0]])
-    plt.ylabel(rule1.__class__.__name__)
-    plt.errorbar(x, y, np.zeros(len(e)), linestale=None)
+    plt.xlabel(rule2_name)
+    axes.set_ylim([0, y[0]])
+    plt.ylabel(rule1_name)
+    plt.plot(x, y)
     plt.title(title)
+    plt.legend(['avg', 'min'])
 
 
-def draw_chart(filename, k, n, m, repetitions, rule1, rule2, multigoal_rule, step=5, log_errors=True):
-    x = np.array([a for a in range(70, 101, step)])
+def draw_chart(filename, k, n, m, repetitions, rule1, rule2, multigoal_rule, start=70, step=5, log_errors=True):
+    print('----------------------------------------------------------')
+    print multigoal_rule.__name__, ', committee size:', k
+    print('----------------------------------------------------------')
+    x = np.array([a for a in range(start, 101, step)])
     y_samples = np.array([np.zeros(repetitions) for _ in x])
 
     y = np.zeros(len(x))
@@ -53,9 +57,18 @@ def draw_chart(filename, k, n, m, repetitions, rule1, rule2, multigoal_rule, ste
         mins[i] = np.min(y_samples[i])
         maxs[i] = np.max(y_samples[i])
         e[i] = np.std(y_samples[i])
-        print("r1: {}% - r2: {}%, r2_min: {}, error: {}".format(r2, y[i], mins[i], e[i]))
+        print("r1: {:3.0f}% - r2: {:3.0f}%, r2_min: {:10.3f}, error: {:10.3f}".format(r2, y[i], mins[i], e[i]))
+        if y[i] == 0:
+            break
 
     title = "voters: {}, candidates: {}, committee size: {}".format(n, m, k)
-    plot(x, y, e, rule1, rule2, title=title)
-    plot(x, mins, e, rule1, rule2, title=title)
+    label1 = rule1.__class__.__name__
+    label2 = rule2.__class__.__name__
+    if rule1.__class__.__name__ == 'TBloc':
+        label1 = '1' + label1[1:]
+        label2 = str(k) + label2[1:]
+
+    plot(x, y, label1, label2, title=title)
+    plot(x, mins, label1, label2, title=title)
     plt.savefig(filename)
+    plt.clf()
