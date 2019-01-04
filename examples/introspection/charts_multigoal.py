@@ -1,16 +1,31 @@
-from pmp.experiments.multigoal_charts import draw_chart
-from pmp.rules import Bloc, Borda, ChamberlinCourant
-from pmp.rules import MultigoalBlocBorda as BB
-from pmp.rules import MultigoalCCBorda as CCB
+import math
 
+from pmp.experiments.multigoal_charts import draw_chart
+from pmp.rules import Bloc, Borda, ChamberlinCourant, MultigoalTBloc, MultigoalBlocBorda, MultigoalCCBorda
+from pmp.rules.tbloc import TBloc
 
 repetitions = 10
-k = 2
-n = 30
-m = 40
+ks = [2, 10, 20, 50]
+n = 200
+m = 200
 
-filename = 'bb-chart-k{}-n{}-m{}'.format(k, n, m)
-draw_chart(filename, k, n, m, repetitions,  Bloc(), Borda(), BB, 2, log_errors=False)
+for k in ks:
+    filename = 'bb-chart-k{}-n{}-m{}'.format(k, n, m)
+    draw_chart(filename, k, n, m, repetitions,  Bloc(), Borda(), MultigoalBlocBorda, start=70, step=2, log_errors=False)
 
-filename = 'ccb-chart-k{}-n{}-m{}'.format(k, n, m)
-draw_chart(filename, k, n, m, repetitions, ChamberlinCourant(), Borda(), CCB, 2, log_errors=False)
+    filename = 'ccb-chart-k{}-n{}-m{}'.format(k, n, m)
+    draw_chart(filename, k, n, m, repetitions, ChamberlinCourant(), Borda(), MultigoalCCBorda, start=70, step=2,
+               log_errors=False)
+
+    filename = 'mbloc(1,k)-chart-k{}-n{}-m{}'.format(k, n, m)
+    draw_chart(filename, k, n, m, repetitions, TBloc(1), TBloc(k), MultigoalTBloc, start=0, step=2, log_errors=False)
+
+    k_2 = int(math.floor(k/2))
+
+    filename = 'mbloc(1,k|2)-chart-k{}-n{}-m{}'.format(k, n, m)
+    draw_chart(filename, k, n, m, repetitions, TBloc(1), TBloc(k_2), MultigoalTBloc, start=0, step=2,
+               log_errors=False)
+
+    filename = 'mbloc(k|2,k)-chart-k{}-n{}-m{}'.format(k, n, m)
+    draw_chart(filename, k, n, m, repetitions, TBloc(k_2), TBloc(k), MultigoalTBloc, start=0, step=2,
+               log_errors=False)

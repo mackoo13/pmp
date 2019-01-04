@@ -35,7 +35,7 @@ class WeaklySeparable(Rule):
             score += self.compute_score(cand, len(committee), profile)
         return score
 
-    def get_committees(self, k, candidates_with_score):
+    def get_committees(self, k, candidates_with_score, random_winning_committee=False):
         all_scores = candidates_with_score.keys()
         decreasing_scores = sorted(all_scores, reverse=True)
         committees = []
@@ -50,10 +50,15 @@ class WeaklySeparable(Rule):
                 committee_size += len(candidates_with_score[score])
             else:
                 complement_size = k - committee_size
-                complements = list(combinations(candidates_with_score[score], complement_size))
 
-                for complement in complements:
+                if random_winning_committee:
+                    complement = candidates_with_score[score][:complement_size]
                     committees.append(committee + list(complement))
+                else:
+                    complements = list(combinations(candidates_with_score[score], complement_size))
+                    for complement in complements:
+                        committees.append(committee + list(complement))
+
                 committee_size += complement_size
 
             score_index += 1
@@ -62,12 +67,11 @@ class WeaklySeparable(Rule):
             committees.append(committee)
         return committees
 
-    def find_committee(self, k, profile):
+    def find_committee(self, k, profile, random_winning_committee=False):
         if self.weights is None:
             raise Exception("Weights not set.")
         profile.clean_scores()
         self.compute_candidate_scores(k, profile)
-
         profile.candidates_with_score = {}
         for cand_id in range(len(profile.candidates)):
             score = profile.scores[cand_id]
@@ -75,7 +79,7 @@ class WeaklySeparable(Rule):
                 profile.candidates_with_score[score] = []
             profile.candidates_with_score[score].append(cand_id)
 
-        committees = self.get_committees(k, profile.candidates_with_score)
+        committees = self.get_committees(k, profile.candidates_with_score, random_winning_committee)
         committee = self.tie_break(committees)
 
         return committee

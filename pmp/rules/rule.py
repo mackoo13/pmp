@@ -7,7 +7,7 @@ class Rule:
     def __init__(self, tie_break=random_winner):
         self.tie_break = tie_break
 
-    def find_committee(self, k, profile):
+    def find_committee(self, k, profile, random_winning_committee):
         raise NotImplementedError()
 
     def compute_candidate_scores(self, k, profile):
