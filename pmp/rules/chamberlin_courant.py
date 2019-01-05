@@ -23,6 +23,9 @@ class ChamberlinCourant(Rule):
         self.weights = weights
         self.scores = {}
 
+    def __str__(self):
+        return "Chamberlin-Courant"
+
     def initialise_weights(self, _k, profile):
         self.weights = self._borda_weights(len(profile.candidates))
 

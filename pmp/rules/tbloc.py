@@ -7,6 +7,9 @@ class TBloc(WeaklySeparable):
         WeaklySeparable.__init__(self)
         self.t = t
 
+    def __str__(self):
+        return "{}-Bloc".format(self.t)
+
     def initialise_weights(self, _k, _profile):
         self.weights = [1] * self.t
 

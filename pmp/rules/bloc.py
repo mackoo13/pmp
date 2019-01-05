@@ -4,6 +4,9 @@ from .weakly_separable import WeaklySeparable
 class Bloc(WeaklySeparable):
     """Bloc vote scoring rule."""
 
+    def __str__(self):
+        return "Bloc"
+
     def initialise_weights(self, k, _profile):
         self.weights = [1] * k
 

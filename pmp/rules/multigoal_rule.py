@@ -15,6 +15,9 @@ class MultigoalRule:
         self.scores = {}
         self.log_errors = log_errors
 
+    def __str__(self):
+        return "MultigoalRule(" + ", ".join([rule.__str__() for rule in self.rules]) + ")"
+
     def find_committees(self, k, profile, method=None):
         if method is None:
             committee = algorithm.registry.default(self, k, profile)
