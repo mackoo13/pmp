@@ -12,7 +12,7 @@ from pmp.rules.utils import get_best_score
 
 
 def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
-                          distribution, reps, log_errors=False):
+                          distribution, reps, log_errors=False, method='ILP'):
 
     rule_name = multigoal_rule.__name__
     distribution_name = get_distribution_name(distribution)
@@ -70,7 +70,7 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
         rule = multigoal_rule(rules_thresholds, log_errors=log_errors)
 
         try:
-            committee = list(rule.find_committees(k, profile, method='ILP'))
+            committee = list(rule.find_committees(k, profile, method=method))
             # Creating winners file
             with open(out_filename, 'w') as out_file:
                 preference = create_pref_orders(tmp_filename, k)
