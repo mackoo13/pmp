@@ -33,7 +33,7 @@ class MultigoalRule:
         return self.scores
 
     def committee_score(self, committee, profile):
-        return [rule.rule.committee_score(committee, profile) for rule in self.rules]
+        return np.array([rule.rule.committee_score(committee, profile) for rule in self.rules])
 
     def _brute(self, k, profile):
         self.compute_scores(k, profile)

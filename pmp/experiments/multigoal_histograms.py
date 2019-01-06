@@ -1,5 +1,6 @@
 import os
 
+from glob import glob
 from cplex.exceptions import CplexSolverError
 
 from pmp.MW2D import mw2d_generate_histogram, mw2d_draw_histogram
@@ -12,10 +13,14 @@ from pmp.rules.utils import get_best_score
 
 
 def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
-                          distribution, reps, log_errors=False, method='ILP'):
+                          distribution, reps, log_errors=False, methods=None,
+                          approximation=False, return_approximations=False):
 
+    if methods is None:
+        methods = ['ILP']
+
+    approximations = {method: [] for method in methods}
     rule_name = multigoal_rule.__name__
-    distribution_name = get_distribution_name(distribution)
 
     if rule_name == 'MultigoalBlocBorda':
         rules = (Bloc(), Borda())
@@ -25,11 +30,8 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
         rules = [TBloc(i + 1) for i, _ in enumerate(percentages)]
 
     perc = '_'.join([str(p) for p in percentages])
-    repetition = 1
-    while repetition <= reps:
 
-        out_filename = '{}_{}_{}_k{}-{}.win'.format(rule_name, distribution_name, perc, k, repetition)
-        out_filename = os.path.join(current_dir, out_filename)
+    for repetition in range(1, reps+1):
         tmp_filename = 'tmp.in'
         tmp_filename = os.path.join(current_dir, tmp_filename)
 
@@ -61,54 +63,70 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
                 f.write('{} {}\n'.format(voter[0], voter[1]))
 
         # Computing winning committee based on given parameters
-        rules_thresholds = []
-        for i, p in enumerate(percentages):
-            rule_best = get_best_score(rules[i], profile, k)
-            rule_threshold = rule_best * percentages[i] / 100
-            rules_thresholds.append(rule_threshold)
+        if approximation and not return_approximations:
+            rules_bests = [None] * len(methods)
+            rules_thresholds = [None] * len(methods)
+        else:
+            rules_bests = []
+            rules_thresholds = []
+            for i, p in enumerate(percentages):
+                rule_best = get_best_score(rules[i], profile, k)
+                rules_bests.append(float(rule_best))
+                rule_threshold = rule_best * percentages[i] / 100
+                rules_thresholds.append(rule_threshold)
 
         rule = multigoal_rule(rules_thresholds, log_errors=log_errors)
 
-        try:
-            committee = list(rule.find_committees(k, profile, method=method))
-            # Creating winners file
-            with open(out_filename, 'w') as out_file:
-                preference = create_pref_orders(tmp_filename, k)
-                out_file.write(preference)
-                for c in committee:
-                    out_file.write('{}\t{} {}\n'.format(c, candidates_map[c][0], candidates_map[c][1]))
-            print('Generated: {}'.format(out_filename))
-            repetition += 1
-        except CplexSolverError:
-            continue
-        finally:
-            os.remove(tmp_filename)
+        for method in methods:
+            out_filename = '{}_{}_{}_k{}-{}-{}.win'.format(rule_name, distribution_name, perc, k, method, repetition)
+            out_filename = os.path.join(current_dir, out_filename)
+
+            try:
+                committee = list(rule.find_committees(k, profile, method=method))
+                if approximation and return_approximations:
+                    approximations[method].append(
+                        rule.committee_score(committee, profile) / rules_bests
+                    )
+
+                # Creating winners file
+                with open(out_filename, 'w') as out_file:
+                    preference = create_pref_orders(tmp_filename, k)
+                    out_file.write(preference)
+                    for c in committee:
+                        out_file.write('{}\t{} {}\n'.format(c, candidates_map[c][0], candidates_map[c][1]))
+                print('Generated: {}'.format(out_filename))
+            except CplexSolverError:
+                continue
+
+        os.remove(tmp_filename)
+
+    if approximation and return_approximations:
+        return approximations
+    else:
+        return None
 
 
-def draw_histogram(current_dir, multigoal_rule, k, percentages, distribution, reps, threshold=None):
+def draw_histogram(current_dir, multigoal_rule, k, percentages, distribution, reps, threshold=None, methods=None):
+    if methods is None:
+        methods = ['ILP']
+
     distribution_name = get_distribution_name(distribution)
     perc = '_'.join([str(p) for p in percentages])
 
-    winner_filename = '{}_{}_{}_k{}'.format(multigoal_rule.__name__, distribution_name, perc, k)
-    file_path = os.path.join(current_dir, winner_filename)
-    mw2d_generate_histogram(file_path, reps)
-
-    histogram_filename = file_path + '.hist'
-    mw2d_draw_histogram(histogram_filename, threshold)
-
-    os.remove(histogram_filename)
-
-
-def delete_winner_files(current_dir, multigoal_rule, k, percentages, distribution, reps):
-    distribution_name = get_distribution_name(distribution)
-    perc = '_'.join([str(p) for p in percentages])
-    for r in range(1, reps + 1):
-        winner_filename = '{}_{}_{}_k{}-{}.win'.format(multigoal_rule.__name__, distribution_name, perc, k, r)
+    for method in methods:
+        winner_filename = '{}_{}_{}_k{}-{}'.format(multigoal_rule.__name__, distribution_name, perc, k, method)
         file_path = os.path.join(current_dir, winner_filename)
-        try:
-            os.remove(file_path)
-        except OSError:
-            pass
+        mw2d_generate_histogram(file_path, reps)
+
+        histogram_filename = file_path + '.hist'
+        mw2d_draw_histogram(histogram_filename, threshold)
+
+        os.remove(histogram_filename)
+
+
+def delete_winner_files(current_dir):
+    for f in glob(os.path.join(current_dir, '*.win')):
+        os.remove(f)
 
 
 def get_distribution_name(distribution):
