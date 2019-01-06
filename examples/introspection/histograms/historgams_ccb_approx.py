@@ -10,10 +10,10 @@ def approx_report(approximations):
 
     for method, results in approximations.items():
         res += method + '\n'
-        res += '\tmean: {}'.format(np.mean(results)) + '\n'
-        res += '\tstd:  {}'.format(np.std(results)) + '\n'
-        res += '\tmin:  {}'.format(np.min(results)) + '\n'
-        res += '\tmax:  {}'.format(np.max(results)) + '\n'
+        res += '\tmean: {}\n'.format(np.mean(results, axis=0))
+        res += '\tstd:  {}\n'.format(np.std(results, axis=0))
+        res += '\tmin:  {}\n'.format(np.min(results, axis=0))
+        res += '\tmax:  {}\n'.format(np.max(results, axis=0))
 
     return res
 
