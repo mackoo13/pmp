@@ -62,11 +62,8 @@ def draw_chart(filename, k, n, m, repetitions, rule1, rule2, multigoal_rule, sta
             break
 
     title = "voters: {}, candidates: {}, committee size: {}".format(n, m, k)
-    label1 = rule1.__class__.__name__
-    label2 = rule2.__class__.__name__
-    if rule1.__class__.__name__ == 'TBloc':
-        label1 = '1' + label1[1:]
-        label2 = str(k) + label2[1:]
+    label1 = rule1.__str__()
+    label2 = rule2.__str__()
 
     plot(x, y, label1, label2, title=title)
     plot(x, mins, label1, label2, title=title)

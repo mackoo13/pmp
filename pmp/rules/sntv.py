@@ -8,6 +8,9 @@ class SNTV(WeaklySeparable):
     def __init__(self, tie_break=random_winner):
         WeaklySeparable.__init__(self, [1], tie_break)
 
+    def __str__(self):
+        return "SNTV"
+
     def compute_score(self, candidate, k, profile):
         score = 0
         for pref in profile.preferences:

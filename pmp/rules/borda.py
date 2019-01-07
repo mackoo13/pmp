@@ -4,6 +4,9 @@ from .weakly_separable import WeaklySeparable
 class Borda(WeaklySeparable):
     """Borda vote scoring rule."""
 
+    def __str__(self):
+        return "k-Borda"
+
     def initialise_weights(self, _k, profile):
         self.weights = self._borda_weights(len(profile.candidates))
 

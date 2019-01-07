@@ -104,7 +104,7 @@ class MultigoalCCBorda(MultigoalRule):
     @algorithm('Approx_Greedy')
     def _greedy(self, k, profile):
         k_cc = int(np.ceil(np.real(lambertw(1)) * k))
-        print('Greedy: selecting {} candidates with CC Greedy and {} candidates with Borda'.format(k_cc, k - k_cc))
+        # print('Greedy: selecting {} candidates with CC Greedy and {} candidates with Borda'.format(k_cc, k - k_cc))
 
         committee = set(self.rules[0].rule.find_committee(k_cc, profile, method='Approx_Greedy'))
 
@@ -124,7 +124,7 @@ class MultigoalCCBorda(MultigoalRule):
         C = np.log(A) * k * (M - 1) * np.power(A, k * M)
         l_cc = M - np.real(lambertw(C)) / (np.log(A) * k)
         k_cc = int(np.ceil(l_cc * k))
-        print('P: selecting {} candidates with CC Greedy and {} candidates with Borda'.format(k_cc, k - k_cc))
+        # print('P: selecting {} candidates with CC Greedy and {} candidates with Borda'.format(k_cc, k - k_cc))
 
         committee = self.rules[0].rule.find_committee(k, profile, method='Approx_P')
         committee = set(committee[:k_cc])

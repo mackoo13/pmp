@@ -15,6 +15,9 @@ class MultigoalRule:
         self.scores = {}
         self.log_errors = log_errors
 
+    def __str__(self):
+        return "MultigoalRule(" + ", ".join([rule.__str__() for rule in self.rules]) + ")"
+
     def find_committees(self, k, profile, method=None):
         if method is None:
             committee = algorithm.registry.default(self, k, profile)
@@ -30,7 +33,7 @@ class MultigoalRule:
         return self.scores
 
     def committee_score(self, committee, profile):
-        return [rule.rule.committee_score(committee, profile) for rule in self.rules]
+        return np.array([rule.rule.committee_score(committee, profile) for rule in self.rules])
 
     def _brute(self, k, profile):
         self.compute_scores(k, profile)

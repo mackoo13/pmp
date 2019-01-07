@@ -22,10 +22,10 @@ for k in ks:
 
     k_2 = int(math.floor(k/2))
 
-    filename = 'mbloc(1,k|2)-chart-k{}-n{}-m{}'.format(k, n, m)
+    filename = 'mbloc(1,k2)-chart-k{}-n{}-m{}'.format(k, n, m)
     draw_chart(filename, k, n, m, repetitions, TBloc(1), TBloc(k_2), MultigoalTBloc, start=0, step=2,
                log_errors=False)
 
-    filename = 'mbloc(k|2,k)-chart-k{}-n{}-m{}'.format(k, n, m)
+    filename = 'mbloc(k2,k)-chart-k{}-n{}-m{}'.format(k, n, m)
     draw_chart(filename, k, n, m, repetitions, TBloc(k_2), TBloc(k), MultigoalTBloc, start=0, step=2,
                log_errors=False)

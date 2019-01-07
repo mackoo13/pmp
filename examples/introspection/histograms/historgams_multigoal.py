@@ -24,5 +24,5 @@ repetitions = 1000
 generate_winner_files(current_dir, m, n, k, multigoal_rule, [r1_percentage, r2_percentage], distribution,
                       repetitions, log_errors=True)
 draw_histogram(current_dir, multigoal_rule, k, [r1_percentage, r2_percentage], distribution, repetitions)
-delete_winner_files(current_dir, multigoal_rule, k, [r1_percentage, r2_percentage], distribution, repetitions)
+delete_winner_files(current_dir)
 
