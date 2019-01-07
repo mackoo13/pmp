@@ -30,8 +30,8 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
         rules = [TBloc(i + 1) for i, _ in enumerate(percentages)]
 
     perc = '_'.join([str(p) for p in percentages])
-
-    for repetition in range(1, reps+1):
+    repetition = 1
+    while repetition <= reps:
         tmp_filename = 'tmp.in'
         tmp_filename = os.path.join(current_dir, tmp_filename)
 
@@ -95,6 +95,7 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
                     for c in committee:
                         out_file.write('{}\t{} {}\n'.format(c, candidates_map[c][0], candidates_map[c][1]))
                 print('Generated: {}'.format(out_filename))
+                repetition += 1
             except CplexSolverError:
                 continue
 
