@@ -17,8 +17,43 @@ def dist(x, y):
     return (sum([(x[i] - y[i]) ** 2 for i in range(DIMENSION)])) ** 0.5
 
 
+def perhaps_float(v):
+    try:
+        return float(v)
+    except ValueError:
+        return v
+
+
+def read_data(f):
+    lines = f.readlines()
+    m, n, k = lines[0].split()
+    m = int(m)
+    n = int(n)
+    k = int(k)
+
+    C = []
+    V = []
+    W = []
+
+    for l in lines[1:m + 1]:
+        s = l.split()[1:]
+        s = [perhaps_float(x) for x in s] + ['None']
+        C.append(tuple(s))
+
+    for l in lines[m + 1:m + n + 1]:
+        s = l.split()[m:]
+        s = [float(x) for x in s]
+        V += [s]
+
+    for l in lines[n + m + 1:n + m + k + 1]:
+        s = l.split()[:1]
+        s = [int(x) for x in s]
+        W += s
+    return m, n, k, C, V, W
+
+
 # Computes distances of the voters to the closest members of the committee
-def compute_dist(voters, winners, candidates):
+def compute_dist(voters, winners, candidates=None):
     d = 0.0
     max_dist = 0.0
     n = 0
@@ -62,20 +97,26 @@ def compute_winners_per_party(candidates, winners):
     return result
 
 
-def visualize(candidates, voters, winners, name, path):
+def visualize_from_win_file(filename):
+    with open(filename, "r") as f:
+        _, _, _, candidates, voters, winners = read_data(f)
+        visualize(candidates, voters, winners, filename)
 
+
+def visualize(candidates, voters, winners, name, path=None):
     avg_d, max_d = compute_dist(voters, winners, candidates)
     rep_avg_d, rep_max_d = compute_dist_of_representatives_to_virt_districts(voters, winners, candidates)
     per_party = compute_winners_per_party(candidates, winners)
 
-    with open(os.path.join(path, "stats.out"), "a") as stats_out:
-        stats_out.write(name + ": \n")
-        stats_out.write("  avg_d = " + str(avg_d) + "\n")
-        stats_out.write("  max_d = " + str(max_d) + "\n")
-        stats_out.write("  rep_avg_d = " + str(rep_avg_d) + "\n")
-        stats_out.write("  rep_max_d = " + str(rep_max_d) + "\n")
-        for (p, v) in per_party.items():
-            stats_out.write("  party-" + str(p) + " = " + str(v) + "\n")
+    if path:
+        with open(os.path.join(path, "stats.out"), "a") as stats_out:
+            stats_out.write(name + ": \n")
+            stats_out.write("  avg_d = " + str(avg_d) + "\n")
+            stats_out.write("  max_d = " + str(max_d) + "\n")
+            stats_out.write("  rep_avg_d = " + str(rep_avg_d) + "\n")
+            stats_out.write("  rep_max_d = " + str(rep_max_d) + "\n")
+            for (p, v) in per_party.items():
+                stats_out.write("  party-" + str(p) + " = " + str(v) + "\n")
 
     if pil_import_fail:
         print("Cannot use functions from PIL")
