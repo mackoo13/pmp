@@ -1,5 +1,6 @@
 import numpy as np
 from itertools import combinations
+from pmp.rules.utils import get_best_score
 from .._common import solve_methods_registry
 
 from .tie_breaking import random_winner
@@ -18,11 +19,11 @@ class MultigoalRule:
     def __str__(self):
         return "MultigoalRule(" + ", ".join([rule.__str__() for rule in self.rules]) + ")"
 
-    def find_committees(self, k, profile, method=None):
+    def find_committees(self, k, profile, method=None, criterion='max_appr'):
         if method is None:
-            committee = algorithm.registry.default(self, k, profile)
+            committee = algorithm.registry.default(self, k, profile, criterion=criterion)
         else:
-            committee = algorithm.registry.all[method](self, k, profile)
+            committee = algorithm.registry.all[method](self, k, profile, criterion=criterion)
         return committee
 
     def compute_scores(self, k, profile):
@@ -32,19 +33,47 @@ class MultigoalRule:
             self.scores[comm] = self.committee_score(comm, profile)
         return self.scores
 
+    def get_max_scores(self, k, profile):
+        return [get_best_score(rule.rule, profile, k) for rule in self.rules]
+
     def committee_score(self, committee, profile):
         return np.array([rule.rule.committee_score(committee, profile) for rule in self.rules])
 
-    def _brute(self, k, profile):
+    @algorithm('Bruteforce', 'Exponential.')
+    def _brute(self, k, profile, criterion='max_appr'):
+        if criterion not in ('all', 'any', 'max_appr'):
+            raise ValueError('Brute method suports the following criteria: \'all\', \'any\', \'max_appr\'')
+
+        def get_worst_appr(c, max_scores):
+            worst_appr = 1
+            for rule1, max_score in zip(self.rules, max_scores):
+                score = rule1.rule.committee_score(c, profile)
+                worst_appr = min(worst_appr, score / float(max_score))
+            return worst_appr
+
         self.compute_scores(k, profile)
         res = []
         for comm in self.scores:
-            if self.scores[comm] >= [rule.s for rule in self.rules]:
-                res.append(comm)
+            if all(self.scores[comm] >= [rule.s for rule in self.rules]):
+                if criterion == 'any':
+                    return comm
+                else:
+                    res.append(comm)
 
-        return res
+        if criterion == 'all':
+            return res
+        if criterion == 'max_appr':
+            max_scores = self.get_max_scores(k, profile) if criterion == 'max_appr' else None
+            return max(res, key=lambda c: get_worst_appr(c, max_scores))
 
-    def _ilp_weakly_separable(self, k, profile):
+    @algorithm('ILP')
+    def _ilp_weakly_separable(self, k, profile, criterion='max_appr'):
+        if criterion not in ('any', 'max_appr'):
+            raise ValueError('ILP method supports the following criteria: \'any\', \'max_appr\'')
+
+        max_scores = self.get_max_scores(k, profile) if criterion == 'max_appr' else [None] * len(self.rules)
+        resolution = 100 if criterion == 'max_appr' else None
+
         # ILP
         m = len(profile.candidates)
 
@@ -56,17 +85,30 @@ class MultigoalRule:
         x_ub = np.ones(m)
         model.add_variables(x, x_lb, x_ub)
 
+        if criterion == 'max_appr':
+            model.add_variable('a', 0, resolution)
+
         # Constraint1 - Vi Ei xi = k
         # K candidates are chosen
         xi = np.ones(m)
         model.add_constraint(x, xi, Sense.eq, k)
 
         # Constraint2 - thresholds
-        for rule in self.rules:
+        for rule, max_score in zip(self.rules, max_scores):
             profile.scores = {}
             rule.rule.initialise_weights(k, profile)
             rule.rule.compute_candidate_scores(k, profile)
             model.add_constraint(x, [profile.scores[i] for i in range(m)], Sense.gt, rule.s)
+
+            if criterion == 'max_appr':
+                model.add_constraint(x + ['a'],
+                                     [profile.scores[i] / float(max_score) * resolution for i in range(m)] + [-1],
+                                     Sense.gt, 0)
+
+        # Maximise the worst approximation
+        if criterion == 'max_appr':
+            model.set_objective_sense(Objective.maximize)
+            model.set_objective(['a'], [1])
 
         # End of definition
 
