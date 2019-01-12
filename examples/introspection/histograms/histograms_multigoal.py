@@ -20,7 +20,7 @@ r1_percentage = 90
 r2_percentage = 90
 distribution = generate_uniform
 
-repetitions = 2
+repetitions = 1000
 
 
 generate_winner_files(out_dir, m, n, k, multigoal_rule, [r1_percentage, r2_percentage], distribution,

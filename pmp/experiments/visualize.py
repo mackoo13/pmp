@@ -53,7 +53,7 @@ def read_data(f):
 
 
 # Computes distances of the voters to the closest members of the committee
-def compute_dist(voters, winners, candidates=None):
+def compute_dist(voters, winners, candidates):
     d = 0.0
     max_dist = 0.0
     n = 0
@@ -100,23 +100,24 @@ def compute_winners_per_party(candidates, winners):
 def visualize_from_win_file(filename):
     with open(filename, "r") as f:
         _, _, _, candidates, voters, winners = read_data(f)
-        visualize(candidates, voters, winners, filename)
+        name = os.path.basename(filename)
+        path = filename[:-len(name)]
+        visualize(candidates, voters, winners, name, path)
 
 
-def visualize(candidates, voters, winners, name, path=None):
+def visualize(candidates, voters, winners, name, path):
     avg_d, max_d = compute_dist(voters, winners, candidates)
     rep_avg_d, rep_max_d = compute_dist_of_representatives_to_virt_districts(voters, winners, candidates)
     per_party = compute_winners_per_party(candidates, winners)
 
-    if path:
-        with open(os.path.join(path, "stats.out"), "a") as stats_out:
-            stats_out.write(name + ": \n")
-            stats_out.write("  avg_d = " + str(avg_d) + "\n")
-            stats_out.write("  max_d = " + str(max_d) + "\n")
-            stats_out.write("  rep_avg_d = " + str(rep_avg_d) + "\n")
-            stats_out.write("  rep_max_d = " + str(rep_max_d) + "\n")
-            for (p, v) in per_party.items():
-                stats_out.write("  party-" + str(p) + " = " + str(v) + "\n")
+    with open(os.path.join(path, "stats.out"), "a") as stats_out:
+        stats_out.write(name + ": \n")
+        stats_out.write("  avg_d = " + str(avg_d) + "\n")
+        stats_out.write("  max_d = " + str(max_d) + "\n")
+        stats_out.write("  rep_avg_d = " + str(rep_avg_d) + "\n")
+        stats_out.write("  rep_max_d = " + str(rep_max_d) + "\n")
+        for (p, v) in per_party.items():
+            stats_out.write("  party-" + str(p) + " = " + str(v) + "\n")
 
     if pil_import_fail:
         print("Cannot use functions from PIL")

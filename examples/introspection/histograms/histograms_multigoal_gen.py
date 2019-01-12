@@ -15,7 +15,7 @@ m = 200   # candidates number
 n = 200   # voters number
 k = 20   # committee_size
 
-repetitions = 1
+repetitions = 200
 distributions = (generate_uniform, generate_circle, generate_gauss)
 rules = (MultigoalTBloc, )
 
