@@ -26,8 +26,8 @@ class MultigoalBlocBorda(MultigoalRule):
         return committee
 
     @algorithm('Bruteforce', 'Exponential.')
-    def _brute_bloc_borda(self, k, profile):
-        return self._brute(k, profile)
+    def _brute_bloc_borda(self, k, profile, criterion='max_appr'):
+        return self._brute(k, profile, criterion=criterion)
 
     @algorithm('ILP', default=True)
     def _ilp(self, k, profile):

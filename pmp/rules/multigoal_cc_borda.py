@@ -24,22 +24,28 @@ class MultigoalCCBorda(MultigoalRule):
                                log_errors=log_errors)
         self.weights = weights
 
-    def find_committees(self, k, profile, method=None):
+    def find_committees(self, k, profile, method=None, criterion='max_appr'):
         if method is None:
-            committee = algorithm.registry.default(self, k, profile)
+            committee = algorithm.registry.default(self, k, profile, criterion=criterion)
         else:
-            committee = algorithm.registry.all[method](self, k, profile)
+            committee = algorithm.registry.all[method](self, k, profile, criterion=criterion)
         return committee
 
     @algorithm('Bruteforce', 'Exponential.')
-    def _brute_cc_kb(self, k, profile):
-        return self._brute(k, profile)
+    def _brute_cc_kb(self, k, profile, criterion='max_appr'):
+        return self._brute(k, profile, criterion=criterion)
 
     @algorithm('ILP', default=True)
-    def _ilp(self, k, profile):
+    def _ilp_cc_kb(self, k, profile, criterion='max_appr'):
+        if criterion not in ('any', 'max_appr'):
+            raise ValueError('ILP method supports the following criteria: \'any\', \'max_appr\'')
+
         self.rules[0].rule.initialise_weights(k, profile)
         self.rules[1].rule.initialise_weights(k, profile)
         self.rules[1].rule.compute_candidate_scores(k, profile)
+
+        max_scores = self.get_max_scores(k, profile) if criterion == 'max_appr' else []
+        resolution = 100 if criterion == 'max_appr' else None
 
         # ILP
         m = len(profile.candidates)
@@ -60,6 +66,10 @@ class MultigoalCCBorda(MultigoalRule):
         y_lb = np.zeros(n * m)
         y_ub = np.ones(n * m)
         model.add_variables(y, y_lb, y_ub)
+
+        # A - estimation of worst approximation
+        if criterion == 'max_appr':
+            model.add_variable('a', 0, resolution)
 
         # Constraint1 - Vi Ei xi = k
         # K candidates are chosen
@@ -89,8 +99,25 @@ class MultigoalCCBorda(MultigoalRule):
         yij_weights = np.fromiter(objective_iterable, int, n * m)
         model.add_constraint(y, yij_weights, Sense.gt, self.rules[0].s)
 
-        # Constraint5 - kBorda
+        # Constraint5 - CC approximation estimation
+        if criterion == 'max_appr':
+            model.add_constraint(y + ['a'],
+                                 list(yij_weights / float(max_scores[0]) * resolution) + [-1],
+                                 Sense.gt, 0)
+
+        # Constraint6 - kBorda
         model.add_constraint(x, [profile.scores[i] for i in range(m)], Sense.gt, self.rules[1].s)
+
+        # Constraint7 - CC approximation estimation
+        if criterion == 'max_appr':
+            model.add_constraint(x + ['a'],
+                                 [profile.scores[i] / float(max_scores[1]) * resolution for i in range(m)] + [-1],
+                                 Sense.gt, 0)
+
+        # Maximise the worst approximation
+        if criterion == 'max_appr':
+            model.set_objective_sense(Objective.maximize)
+            model.set_objective(['a'], [1])
 
         # End of definition
 
