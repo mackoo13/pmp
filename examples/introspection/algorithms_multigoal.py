@@ -16,9 +16,10 @@ candidates = [0, 1, 2]
 
 profile = Profile(candidates, preferences)
 
-# rule = MultigoalCCBorda((8, 8))
-rule = MultigoalTBloc((2, 5))
+rule = MultigoalCCBorda((0, 0))
+# rule = MultigoalTBloc((0, 0))
 
-committee = rule.find_committees(k, profile, method='Bruteforce')
-print('Points:', rule.scores)
+# committee = rule.find_committees(k, profile, method='Bruteforce', criterion='max_appr')
+committee = rule.find_committees(k, profile, method='ILP', criterion='max_appr')
+
 print('Selected committees:', list(committee))

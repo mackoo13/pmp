@@ -18,17 +18,17 @@ class MultigoalBlocBorda(MultigoalRule):
                                log_errors=log_errors)
         self.weights = weights
 
-    def find_committees(self, k, profile, method=None):
+    def find_committees(self, k, profile, method=None, criterion='max_appr'):
         if method is None:
-            committee = algorithm.registry.default(self, k, profile)
+            committee = algorithm.registry.default(self, k, profile, criterion=criterion)
         else:
-            committee = algorithm.registry.all[method](self, k, profile)
+            committee = algorithm.registry.all[method](self, k, profile, criterion=criterion)
         return committee
 
     @algorithm('Bruteforce', 'Exponential.')
-    def _brute_bloc_borda(self, k, profile):
-        return self._brute(k, profile)
+    def _brute_bloc_borda(self, k, profile, criterion='max_appr'):
+        return self._brute(k, profile, criterion=criterion)
 
     @algorithm('ILP', default=True)
-    def _ilp(self, k, profile):
-        return self._ilp_weakly_separable(k, profile)
+    def _ilp(self, k, profile, criterion='max_appr'):
+        return self._ilp_weakly_separable(k, profile, criterion=criterion)

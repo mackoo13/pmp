@@ -17,18 +17,3 @@ class MultigoalTBloc(MultigoalRule):
                                [ThresholdRule(TBloc(i + 1), t) for i, t in enumerate(thresholds)],
                                log_errors=log_errors)
         self.weights = weights
-
-    def find_committees(self, k, profile, method=None):
-        if method is None:
-            committee = algorithm.registry.default(self, k, profile)
-        else:
-            committee = algorithm.registry.all[method](self, k, profile)
-        return committee
-
-    @algorithm('Bruteforce', 'Exponential.')
-    def _brute_tbloc(self, k, profile):
-        return self._brute(k, profile)
-
-    @algorithm('ILP', default=True)
-    def _ilp_tbloc(self, k, profile):
-        return self._ilp_weakly_separable(k, profile)
