@@ -4,7 +4,7 @@ from glob import glob
 from cplex.exceptions import CplexSolverError
 
 from pmp.MW2D import mw2d_generate_histogram, mw2d_draw_histogram
-from pmp.experiments.experiment import preference_orders
+from pmp.experiments.experiment import preference_orders, visualize_from_win_file
 from pmp.preferences import Profile
 from pmp.MW2D.pref import create_pref_orders
 from pmp.rules import ChamberlinCourant, Borda, Bloc
@@ -123,6 +123,11 @@ def draw_histogram(current_dir, multigoal_rule, k, percentages, distribution, re
         mw2d_draw_histogram(histogram_filename, threshold)
 
         os.remove(histogram_filename)
+
+
+def visualize_elections(current_dir, elections_num=None):
+    for f in glob(os.path.join(current_dir, '*.win'))[:elections_num]:
+        visualize_from_win_file(f)
 
 
 def delete_winner_files(current_dir):

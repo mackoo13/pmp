@@ -1,4 +1,5 @@
 from pmp.experiments import generate_uniform, generate_winner_files, draw_histogram, delete_winner_files
+from pmp.experiments.multigoal_histograms import visualize_elections
 from pmp.rules import MultigoalCCBorda
 import os
 import numpy as np
@@ -44,6 +45,7 @@ approximations = generate_winner_files(out_dir, m, n, k, multigoal_rule, [r1_per
                                        repetitions, log_errors=True, methods=methods,
                                        approximation=True, return_approximations=return_approximations)
 draw_histogram(out_dir, MultigoalCCBorda, k, [r1_percentage, r2_percentage], distribution, repetitions, methods=methods)
+visualize_elections(out_dir)
 delete_winner_files(out_dir)
 
 if return_approximations:
