@@ -16,8 +16,8 @@ k = 20   # committee_size
 
 multigoal_rule = BB
 
-r1_percentage = 90
-r2_percentage = 90
+r1_percentage = 0
+r2_percentage = 0
 distribution = generate_uniform
 
 repetitions = 1000

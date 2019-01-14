@@ -38,7 +38,7 @@ r1_percentage = 100
 r2_percentage = 100
 distribution = generate_uniform
 
-repetitions = 99
+repetitions = 1000
 return_approximations = True
 
 approximations = generate_winner_files(out_dir, m, n, k, multigoal_rule, [r1_percentage, r2_percentage], distribution,
