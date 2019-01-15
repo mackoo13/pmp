@@ -48,6 +48,7 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
 
     if methods is None:
         methods = ['ILP']
+    reps *= len(methods)
 
     approximations = {method: [] for method in methods}
     rule_name = multigoal_rule.__name__

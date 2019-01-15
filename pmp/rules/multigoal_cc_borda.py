@@ -128,6 +128,7 @@ class MultigoalCCBorda(MultigoalRule):
 
         return committee
 
+    # noinspection PyUnusedLocal
     @algorithm('Approx_Greedy')
     def _greedy(self, k, profile, criterion='max_appr'):
         k_cc = int(np.ceil(np.real(lambertw(1)) * k))
@@ -143,6 +144,7 @@ class MultigoalCCBorda(MultigoalRule):
             if len(committee) == k:
                 return committee
 
+    # noinspection PyUnusedLocal
     @algorithm('Approx_P')
     def _p(self, k, profile, criterion='max_appr'):
         x = int(np.math.ceil(profile.num_cand * np.real(lambertw(k)) / k))
@@ -160,6 +162,7 @@ class MultigoalCCBorda(MultigoalRule):
         self.rules[1].rule.compute_candidate_scores(k, profile)
 
         for cand in sorted(profile.scores, key=lambda c: profile.scores.get(c), reverse=True):
-            committee.add(cand)
-            if len(committee) == k:
+            if len(committee) < k:
+                committee.add(cand)
+            else:
                 return committee
