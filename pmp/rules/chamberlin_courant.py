@@ -119,7 +119,7 @@ class ChamberlinCourant(Rule):
         candidates = set(profile.candidates)
 
         while len(committee) < k:
-            best_candidate = None
+            best_candidate = next(iter(candidates))
             best_income = 0
 
             for c in candidates:
