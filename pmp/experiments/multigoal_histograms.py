@@ -16,20 +16,26 @@ def generate_preference_file(distribution, tmp_filename, m, n):
     if distribution.__name__ == 'generate_uniform':
         voters = distribution(-3, -3, 3, 3, n, 'None')
         candidates = distribution(-3, -3, 3, 3, m, 'None')
-        distribution_name = 'square'
+        preferences = preference_orders(candidates, voters)
     elif distribution.__name__ == 'generate_circle':
         voters = distribution(0, 0, 3, n, 'None')
         candidates = distribution(0, 0, 3, m, 'None')
-        distribution_name = 'circle'
-    else:
+        preferences = preference_orders(candidates, voters)
+    elif distribution.__name__ == 'generate_gauss':
         voters = distribution(0, 0, 1, n, 'None')
         candidates = distribution(0, 0, 1, m, 'None')
-        distribution_name = 'gauss'
+        preferences = preference_orders(candidates, voters)
+    elif distribution.__name__ == 'generate_urn':
+        voters = [(0, 0, 'None') for _ in range(n)]
+        candidates = [(0, 0, 'None') for _ in range(m)]
+        preferences = distribution(m, n)
+    else:
+        raise ValueError
 
-    preferences = preference_orders(candidates, voters)
     candidates_list = list(range(m))
     profile = Profile(candidates_list, preferences)
-    candidates_map = {c: (candidates[c][0], candidates[c][1]) for c in candidates_list}
+    candidates_map = {c: (candidates[c][0], candidates[c][1])for c in candidates_list}
+    distribution_name = get_distribution_name(distribution)
 
     # Creating temporary file with voters and candidates
     with open(tmp_filename, 'w') as f:
@@ -70,8 +76,9 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
 
             # Generating candidates, voters and their preferences
             distribution_name, profile, candidates_map = generate_preference_file(distribution, tmp_filename, m, n)
+            repetition_per_method = (repetition - 1) / len(methods) + 1
             out_filename = '{}_{}_{}_k{}_n{}_m{}_{}_{}.win'.format(rule_name, distribution_name,
-                                                                   perc, k, n, m, method, repetition)
+                                                                   perc, k, n, m, method, repetition_per_method)
             out_filename = os.path.join(current_dir, out_filename)
             if os.path.isfile(out_filename):
                 repetition += 1
@@ -151,4 +158,33 @@ def get_distribution_name(distribution):
         return 'square'
     elif distribution.__name__ == 'generate_circle':
         return'circle'
-    return 'gauss'
+    elif distribution.__name__ == 'generate_gauss':
+        return'gauss'
+    elif distribution.__name__ == 'generate_urn':
+        return'urn'
+    else:
+        return distribution.__name__
+
+
+def generate_from_distribution(distribution, m, n):
+    # Generating candidates, voters and their preferences
+    if distribution.__name__ == 'generate_uniform':
+        voters = distribution(-3, -3, 3, 3, n, 'None')
+        candidates = distribution(-3, -3, 3, 3, m, 'None')
+        preferences = preference_orders(candidates, voters)
+    elif distribution.__name__ == 'generate_circle':
+        voters = distribution(0, 0, 3, n, 'None')
+        candidates = distribution(0, 0, 3, m, 'None')
+        preferences = preference_orders(candidates, voters)
+    elif distribution.__name__ == 'generate_gauss':
+        voters = distribution(0, 0, 1, n, 'None')
+        candidates = distribution(0, 0, 1, m, 'None')
+        preferences = preference_orders(candidates, voters)
+    elif distribution.__name__ == 'generate_urn':
+        voters = [(0, 0, 'None') for _ in range(n)]
+        candidates = [(0, 0, 'None') for _ in range(m)]
+        preferences = distribution(m, n)
+    else:
+        raise ValueError
+
+    return voters, candidates, preferences

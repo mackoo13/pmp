@@ -1,4 +1,5 @@
 import os
+import numpy as np
 from random import random, gauss, shuffle
 
 from ..preferences import Ordinal
@@ -60,6 +61,33 @@ def generate_circle(x, y, r, n, party):
             l += [(px + x, py + y, party)]
             count += 1
     return l
+
+
+def generate_urn(m, n):
+    # Polya-Eggenberger model
+    # Assumption: a = (m-1)!
+
+    options = [None]
+    p = [m]
+    res = []
+
+    for i in range(n):
+        perm_id = np.random.choice(options, p=np.array(p)/float(sum(p)))
+        if perm_id is None:         # random permutation with uniform distribution
+            perm = list(range(m))
+            shuffle(perm)
+            perm = Ordinal(perm)
+        else:                       # repeat an order that we have generated before
+            perm = res[perm_id]
+
+        options.append(i)
+        p.append(1)
+        res.append(perm)
+
+    for p in res:
+        print(p.order)
+
+    return res
 
 
 def impartial(m, n):

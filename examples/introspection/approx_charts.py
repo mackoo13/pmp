@@ -1,4 +1,4 @@
-from pmp.experiments import generate_uniform, generate_winner_files, delete_winner_files
+from pmp.experiments import generate_uniform, generate_urn, generate_winner_files, delete_winner_files
 from pmp.experiments.multigoal_charts import draw_approximation_charts
 from pmp.rules import MultigoalCCBorda
 import os
@@ -15,16 +15,20 @@ if not os.path.exists(out_dir):
 if not os.path.exists(tmp_dir):
     os.mkdir(tmp_dir)
 
-n = 100
-ms = [20]
+n = 50
+ms = [51]
 k_intervals = 20
 k_percs = np.array(range(1, k_intervals)) / float(k_intervals)
 
+if k_intervals > max(ms):
+    raise ValueError
+
 methods = ('Approx_P', 'Approx_Greedy')
 multigoal_rule = MultigoalCCBorda
-distribution = generate_uniform
+distribution = generate_urn
+# distribution = generate_uniform
 
-repetitions = 50
+repetitions = 5
 res = {}
 for method in methods:
     res[method] = np.zeros((len(ms), len(k_percs)))
