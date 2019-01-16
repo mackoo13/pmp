@@ -12,6 +12,36 @@ from pmp.rules.tbloc import TBloc
 from pmp.rules.utils import get_best_score
 
 
+def generate_preference_file(distribution, tmp_filename, m, n):
+    if distribution.__name__ == 'generate_uniform':
+        voters = distribution(-3, -3, 3, 3, n, 'None')
+        candidates = distribution(-3, -3, 3, 3, m, 'None')
+        distribution_name = 'square'
+    elif distribution.__name__ == 'generate_circle':
+        voters = distribution(0, 0, 3, n, 'None')
+        candidates = distribution(0, 0, 3, m, 'None')
+        distribution_name = 'circle'
+    else:
+        voters = distribution(0, 0, 1, n, 'None')
+        candidates = distribution(0, 0, 1, m, 'None')
+        distribution_name = 'gauss'
+
+    preferences = preference_orders(candidates, voters)
+    candidates_list = list(range(m))
+    profile = Profile(candidates_list, preferences)
+    candidates_map = {c: (candidates[c][0], candidates[c][1]) for c in candidates_list}
+
+    # Creating temporary file with voters and candidates
+    with open(tmp_filename, 'w') as f:
+        f.write('{} {}\n'.format(m, n))
+        for i, candidate in enumerate(candidates):
+            f.write('{}\t{} {}\n'.format(i, candidate[0], candidate[1]))
+        for voter in voters:
+            f.write('{} {}\n'.format(voter[0], voter[1]))
+
+    return distribution_name, profile, candidates_map
+
+
 def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
                           distribution, reps, log_errors=False, methods=None,
                           approximation=False, return_approximations=False):
@@ -36,31 +66,7 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
         tmp_filename = os.path.join(current_dir, tmp_filename)
 
         # Generating candidates, voters and their preferences
-        if distribution.__name__ == 'generate_uniform':
-            voters = distribution(-3, -3, 3, 3, n, 'None')
-            candidates = distribution(-3, -3, 3, 3, m, 'None')
-            distribution_name = 'square'
-        elif distribution.__name__ == 'generate_circle':
-            voters = distribution(0, 0, 3, n, 'None')
-            candidates = distribution(0, 0, 3, m, 'None')
-            distribution_name = 'circle'
-        else:
-            voters = distribution(0, 0, 1, n, 'None')
-            candidates = distribution(0, 0, 1, m, 'None')
-            distribution_name = 'gauss'
-
-        preferences = preference_orders(candidates, voters)
-        candidates_list = list(range(m))
-        profile = Profile(candidates_list, preferences)
-        candidates_map = {c: (candidates[c][0], candidates[c][1])for c in candidates_list}
-
-        # Creating temporary file with voters and candidates
-        with open(tmp_filename, 'w') as f:
-            f.write('{} {}\n'.format(m, n))
-            for i, candidate in enumerate(candidates):
-                f.write('{}\t{} {}\n'.format(i, candidate[0], candidate[1]))
-            for voter in voters:
-                f.write('{} {}\n'.format(voter[0], voter[1]))
+        distribution_name, profile, candidates_map = generate_preference_file(distribution, tmp_filename, m, n)
 
         # Computing winning committee based on given parameters
         if approximation and not return_approximations:
@@ -80,6 +86,9 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
         for method in methods:
             out_filename = '{}_{}_{}_k{}-{}-{}.win'.format(rule_name, distribution_name, perc, k, method, repetition)
             out_filename = os.path.join(current_dir, out_filename)
+            if os.path.isfile(out_filename):
+                repetition += 1
+                continue
 
             try:
                 committee = list(rule.find_committees(k, profile, method=method))
