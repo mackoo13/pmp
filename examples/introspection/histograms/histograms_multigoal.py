@@ -20,15 +20,15 @@ distribution = generate_uniform
 repetitions = 1000
 
 
-out_dirname = '{}_{}_{}_{}_k{}'.format(multigoal_rule.__name__, distribution.__name__, r1_percentage, r2_percentage, k)
-out_dir = os.path.join(current_dir, 'results')
-out_dir = os.path.join(out_dir, out_dirname)
+out_dirname = '{}_{}_{}_{}_k{}_n{}_m{}'.format(multigoal_rule.__name__, distribution.__name__,
+                                               r1_percentage, r2_percentage, k, n, m)
+out_dir = os.path.join(current_dir, 'results', out_dirname)
 if not os.path.exists(out_dir):
-    os.mkdir(out_dir)
+    os.makedirs(out_dir)
 
 
 generate_winner_files(out_dir, m, n, k, multigoal_rule, [r1_percentage, r2_percentage], distribution,
                       repetitions, log_errors=True)
-draw_histogram(out_dir, multigoal_rule, k, [r1_percentage, r2_percentage], distribution, repetitions)
+draw_histogram(out_dir, multigoal_rule, k, [r1_percentage, r2_percentage], distribution, repetitions, n, m)
 visualize_elections(out_dir)
 

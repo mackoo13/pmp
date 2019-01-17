@@ -62,7 +62,7 @@ def draw_pareto_chart_from_winner_files(current_dir, m, n, k, multigoal_rule, di
     for i, r2 in enumerate(x):
         for j in range(repetitions):
             distribution_name = get_distribution_name(distribution)
-            in_filename = '{}_{}_{}_k{}-{}.win'.format(rule_name, distribution_name, r2, k, j + 1)
+            in_filename = '{}_{}_{}_k{}_n{}_m{}_{}.win'.format(rule_name, distribution_name, r2, k, n, m, j + 1)
             in_filename = os.path.join(current_dir, in_filename)
             if not os.path.isfile(in_filename):
                 break
@@ -113,7 +113,8 @@ def generate_winner_files_for_pareto(current_dir, m, n, k, multigoal_rule, distr
                 rule1_threshold = rule1_best * r1 / 100
                 rule2_threshold = rule2_best * r2 / 100
 
-                out_filename = '{}_{}_{}_k{}-{}.win'.format(rule_name, distribution_name, r2, k, repetition)
+                out_filename = '{}_{}_{}_k{}_n{}_m{}_{}.win'.format(
+                    rule_name, distribution_name, r2, k, n, m, repetition)
                 out_filename = os.path.join(current_dir, out_filename)
                 if os.path.isfile(out_filename):
                     repetition += 1

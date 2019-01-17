@@ -60,35 +60,36 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
         rules = [TBloc(i + 1) for i, _ in enumerate(percentages)]
 
     perc = '_'.join([str(p) for p in percentages])
-    repetition = 1
-    while repetition <= reps:
-        tmp_filename = 'tmp.in'
-        tmp_filename = os.path.join(current_dir, tmp_filename)
+    for method in methods:
 
-        # Generating candidates, voters and their preferences
-        distribution_name, profile, candidates_map = generate_preference_file(distribution, tmp_filename, m, n)
+        repetition = 1
+        while repetition <= reps:
+            tmp_filename = 'tmp.in'
+            tmp_filename = os.path.join(current_dir, tmp_filename)
 
-        # Computing winning committee based on given parameters
-        if approximation and not return_approximations:
-            rules_bests = [None] * len(methods)
-            rules_thresholds = [None] * len(methods)
-        else:
-            rules_bests = []
-            rules_thresholds = []
-            for i, p in enumerate(percentages):
-                rule_best = get_best_score(rules[i], profile, k)
-                rules_bests.append(float(rule_best))
-                rule_threshold = rule_best * percentages[i] / 100
-                rules_thresholds.append(rule_threshold)
-
-        rule = multigoal_rule(rules_thresholds, log_errors=log_errors)
-
-        for method in methods:
-            out_filename = '{}_{}_{}_k{}-{}-{}.win'.format(rule_name, distribution_name, perc, k, method, repetition)
+            # Generating candidates, voters and their preferences
+            distribution_name, profile, candidates_map = generate_preference_file(distribution, tmp_filename, m, n)
+            out_filename = '{}_{}_{}_k{}_n{}_m{}_{}_{}.win'.format(rule_name, distribution_name,
+                                                                   perc, k, n, m, method, repetition)
             out_filename = os.path.join(current_dir, out_filename)
             if os.path.isfile(out_filename):
                 repetition += 1
                 continue
+
+            # Computing winning committee based on given parameters
+            if approximation and not return_approximations:
+                rules_bests = [None] * len(methods)
+                rules_thresholds = [None] * len(methods)
+            else:
+                rules_bests = []
+                rules_thresholds = []
+                for i, p in enumerate(percentages):
+                    rule_best = get_best_score(rules[i], profile, k)
+                    rules_bests.append(float(rule_best))
+                    rule_threshold = rule_best * percentages[i] / 100
+                    rules_thresholds.append(rule_threshold)
+
+            rule = multigoal_rule(rules_thresholds, log_errors=log_errors)
 
             try:
                 committee = list(rule.find_committees(k, profile, method=method))
@@ -108,7 +109,7 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
             except CplexSolverError:
                 continue
 
-        os.remove(tmp_filename)
+            os.remove(tmp_filename)
 
     if approximation and return_approximations:
         return approximations
@@ -116,7 +117,7 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
         return None
 
 
-def draw_histogram(current_dir, multigoal_rule, k, percentages, distribution, reps, threshold=None, methods=None):
+def draw_histogram(current_dir, multigoal_rule, k, percentages, distribution, reps, n, m, threshold=None, methods=None):
     if methods is None:
         methods = ['ILP']
 
@@ -124,7 +125,7 @@ def draw_histogram(current_dir, multigoal_rule, k, percentages, distribution, re
     perc = '_'.join([str(p) for p in percentages])
 
     for method in methods:
-        winner_filename = '{}_{}_{}_k{}-{}'.format(multigoal_rule.__name__, distribution_name, perc, k, method)
+        winner_filename = '{}_{}_{}_k{}_n{}_m{}_{}'.format(multigoal_rule.__name__, distribution_name, perc, k, n, m, method)
         file_path = os.path.join(current_dir, winner_filename)
         mw2d_generate_histogram(file_path, reps)
 

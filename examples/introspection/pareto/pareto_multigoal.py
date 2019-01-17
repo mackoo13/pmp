@@ -7,10 +7,9 @@ from pmp.rules import MultigoalBlocBorda, MultigoalCCBorda
 
 
 def make_dir(out_dirname, curr_dir):
-    directory = os.path.join(curr_dir, 'results')
-    directory = os.path.join(directory, out_dirname)
+    directory = os.path.join(curr_dir, 'results', out_dirname)
     if not os.path.exists(directory):
-        os.mkdir(directory)
+        os.makedirs(directory)
     return directory
 
 
@@ -26,8 +25,8 @@ distributions = (generate_uniform, )
 for k in ks:
     for distribution in distributions:
         distribution_name = get_distribution_name(distribution)
-        rules = ((MultigoalCCBorda, 'MultigoalCCBorda-{}-k{}-n{}-m{}'.format(distribution_name, k, n, m)),
-                 (MultigoalBlocBorda, 'MultigoalBlocBorda-{}-k{}-n{}-m{}'.format(distribution_name, k, n, m)))
+        rules = ((MultigoalCCBorda, 'MultigoalCCBorda_{}_k{}_n{}_m{}'.format(distribution_name, k, n, m)),
+                 (MultigoalBlocBorda, 'MultigoalBlocBorda_{}_k{}_n{}_m{}'.format(distribution_name, k, n, m)))
 
         for multigoal_rule, filename in rules:
             out_dir = make_dir(filename, current_dir)

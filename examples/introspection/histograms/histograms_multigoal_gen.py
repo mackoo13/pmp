@@ -1,5 +1,4 @@
-from pmp.experiments import generate_uniform, generate_gauss, generate_circle, generate_winner_files, draw_histogram, \
-    delete_winner_files
+from pmp.experiments import generate_uniform, generate_gauss, generate_circle, generate_winner_files, draw_histogram
 from pmp.experiments.multigoal_histograms import visualize_elections
 from pmp.rules import MultigoalBlocBorda, MultigoalTBloc,  MultigoalCCBorda
 import os
@@ -32,13 +31,13 @@ percentages = [[0] * k, ]
 for multigoal_rule in rules:
     for distribution in distributions:
         for per in percentages:
-            out_dirname = '{}_{}_{}_{}_k{}'.format(multigoal_rule.__name__, distribution.__name__, per[0], per[1], k)
-            out_dir = os.path.join(current_dir, 'results')
-            out_dir = os.path.join(out_dir, out_dirname)
+            out_dirname = '{}_{}_{}_{}_k{}_n{}_m{}'.format(multigoal_rule.__name__, distribution.__name__,
+                                                           per[0], per[1], k, n, m)
+            out_dir = os.path.join(current_dir, 'results', out_dirname)
             if not os.path.exists(out_dir):
-                os.mkdir(out_dir)
+                os.makedirs(out_dir)
 
             generate_winner_files(out_dir, m, n, k, multigoal_rule, per, distribution, repetitions, log_errors=True)
-            draw_histogram(out_dir, multigoal_rule, k, per, distribution, repetitions)
+            draw_histogram(out_dir, multigoal_rule, k, per, distribution, repetitions, n, m)
             visualize_elections(out_dir, elections_num=1)
 
