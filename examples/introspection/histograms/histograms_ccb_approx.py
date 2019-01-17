@@ -10,6 +10,8 @@ def approx_report(approximations):
     res = ''
 
     for method, results in approximations.items():
+        if not results:
+            continue
         res += method + '\n'
         res += '\tmean: {}\n'.format(np.mean(results, axis=0))
         res += '\tstd:  {}\n'.format(np.std(results, axis=0))
@@ -21,9 +23,6 @@ def approx_report(approximations):
 
 current_file = os.path.abspath(__file__)
 current_dir = os.path.dirname(current_file)
-out_dir = os.path.join(current_dir, 'tmp_results')
-if not os.path.exists(out_dir):
-    os.mkdir(out_dir)
 
 
 # Configuration
@@ -41,12 +40,18 @@ distribution = generate_uniform
 repetitions = 99
 return_approximations = True
 
+out_dirname = '{}_{}_{}_{}_k{}_n{}_m{}'.format(multigoal_rule.__name__, distribution.__name__,
+                                               r1_percentage, r2_percentage, k, n, m)
+out_dir = os.path.join(current_dir, 'results', out_dirname)
+if not os.path.exists(out_dir):
+    os.makedirs(out_dir)
+
 approximations = generate_winner_files(out_dir, m, n, k, multigoal_rule, [r1_percentage, r2_percentage], distribution,
                                        repetitions, log_errors=True, methods=methods,
                                        approximation=True, return_approximations=return_approximations)
-draw_histogram(out_dir, MultigoalCCBorda, k, [r1_percentage, r2_percentage], distribution, repetitions, methods=methods)
+draw_histogram(out_dir, MultigoalCCBorda, k, [r1_percentage, r2_percentage], distribution,
+               repetitions, n, m, methods=methods)
 visualize_elections(out_dir)
-delete_winner_files(out_dir)
 
 if return_approximations:
     report = approx_report(approximations)

@@ -48,7 +48,7 @@ def mw2d_generate_histogram(filename, reps):
     for i in range(1, reps + 1):
         count = 0
         try:
-            data_in = open(filename + ("-%d.win" % i), "r")
+            data_in = open(filename + ("_%d.win" % i), "r")
             m, n, k, C, V, Winner = readData(data_in)
 
             for x, y in Winner:
@@ -64,7 +64,7 @@ def mw2d_generate_histogram(filename, reps):
                 if HISTOGRAM[int(y)][int(x)] > MAX:
                     MAX = HISTOGRAM[int(y)][int(x)]
         except IOError:
-            print "No file", filename + "-" + str(i) + ".win"
+            print "No file", filename + "_" + str(i) + ".win"
 
     print "MAX = ", MAX
 

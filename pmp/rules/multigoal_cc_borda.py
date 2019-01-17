@@ -129,7 +129,7 @@ class MultigoalCCBorda(MultigoalRule):
         return committee
 
     @algorithm('Approx_Greedy')
-    def _greedy(self, k, profile):
+    def _greedy(self, k, profile, criterion='max_appr'):
         k_cc = int(np.ceil(np.real(lambertw(1)) * k))
         # print('Greedy: selecting {} candidates with CC Greedy and {} candidates with Borda'.format(k_cc, k - k_cc))
 
@@ -144,7 +144,7 @@ class MultigoalCCBorda(MultigoalRule):
                 return committee
 
     @algorithm('Approx_P')
-    def _p(self, k, profile):
+    def _p(self, k, profile, criterion='max_appr'):
         x = int(np.math.ceil(profile.num_cand * np.real(lambertw(k)) / k))
         A = 1 - (np.real(lambertw(k))) / k
         M = 1 - (profile.num_cand - x) / (profile.num_cand - 1)

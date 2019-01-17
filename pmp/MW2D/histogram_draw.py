@@ -1,3 +1,4 @@
+import os
 from math import *
 from PIL import Image, ImageDraw
 
@@ -21,7 +22,7 @@ def readData(f):
 
 def mw2d_draw_histogram(filename, threshold=None):
     f = open(filename, "r")
-    (W, H, HISTOGRAM) = readData(f)
+    W, H, HISTOGRAM = readData(f)
 
     TRADITIONAL = False
     try:
@@ -66,4 +67,8 @@ def mw2d_draw_histogram(filename, threshold=None):
                     dr.point((x, (H - 1) - y), fill="rgb(%d,%d,%d)" % (val, val, val))
         print "MAX_VAL = ", MAX_VAL
 
-    im.save(filename.replace(".", "_") + ".png")
+    current_dir = os.path.abspath(os.path.join(filename, os.pardir))
+    parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
+    base = os.path.basename(filename)
+    out_file = os.path.join(parent_dir, base)
+    im.save(out_file.replace(".", "_") + ".png")
