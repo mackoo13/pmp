@@ -1,4 +1,4 @@
-from pmp.experiments import generate_uniform, generate_winner_files, draw_histogram, delete_winner_files
+from pmp.experiments import generate_uniform, generate_winner_files, draw_histogram
 from pmp.experiments.multigoal_histograms import visualize_elections
 from pmp.rules import MultigoalCCBorda
 import os

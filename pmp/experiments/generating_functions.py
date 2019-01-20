@@ -63,12 +63,11 @@ def generate_circle(x, y, r, n, party):
     return l
 
 
-def generate_urn(m, n):
+def generate_urn(a, m, n):
     # Polya-Eggenberger model
-    # Assumption: a = (m-1)!
 
     options = [None]
-    p = [m]
+    p = [1]
     res = []
 
     for i in range(n):
@@ -81,11 +80,29 @@ def generate_urn(m, n):
             perm = res[perm_id]
 
         options.append(i)
-        p.append(1)
+        p.append(a)
         res.append(perm)
 
-    for p in res:
-        print(p.order)
+    return res
+
+
+def generate_mallows(phi, m, n):
+    # RIM sampling, as described in:
+    # "Effective Sampling and Learning for Mallows Models with Pairwise-Preference Data" (Lu, Boutilier)
+
+    res = []
+    sigma = range(m)
+
+    for _ in range(n):
+        p = [1]
+        v = []
+
+        for i, cand in enumerate(sigma):
+            pos = np.random.choice(range(i+1), p=np.array(p)/float(sum(p)))
+            p.insert(0, p[0] * phi)
+            v.insert(pos, cand)
+
+        res.append(Ordinal(v))
 
     return res
 

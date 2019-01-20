@@ -1,6 +1,6 @@
 from pmp.experiments import generate_uniform, generate_gauss, generate_circle, generate_winner_files, draw_histogram
 from pmp.experiments.multigoal_histograms import visualize_elections
-from pmp.rules import MultigoalBlocBorda, MultigoalTBloc,  MultigoalCCBorda
+from pmp.rules import MultigoalTBloc
 import os
 
 current_file = os.path.abspath(__file__)
