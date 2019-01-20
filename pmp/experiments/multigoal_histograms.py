@@ -92,7 +92,7 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
             rule = multigoal_rule(rules_thresholds, log_errors=log_errors)
 
             try:
-                committee = list(rule.find_committees(k, profile, method=method))
+                committee = list(rule.find_committee(k, profile, method=method))
                 if approximation and return_approximations:
                     approximations[method].append(
                         rule.committee_score(committee, profile) / rules_bests

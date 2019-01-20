@@ -24,7 +24,7 @@ class MultigoalCCBorda(MultigoalRule):
                                log_errors=log_errors)
         self.weights = weights
 
-    def find_committees(self, k, profile, method=None, criterion='max_appr'):
+    def find_committee(self, k, profile, method=None, criterion='max_appr'):
         if method is None:
             committee = algorithm.registry.default(self, k, profile, criterion=criterion)
         else:

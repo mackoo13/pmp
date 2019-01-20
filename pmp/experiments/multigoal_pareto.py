@@ -122,7 +122,7 @@ def generate_winner_files_for_pareto(current_dir, m, n, k, multigoal_rule, distr
 
                 rule = multigoal_rule((rule1_threshold, rule2_threshold), log_errors=log_errors)
                 try:
-                    committee = list(rule.find_committees(k, profile, method='ILP'))
+                    committee = list(rule.find_committee(k, profile, method='ILP'))
 
                     # Generating winners file
                     with open(out_filename, 'w') as out_file:
