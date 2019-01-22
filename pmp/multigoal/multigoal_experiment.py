@@ -17,14 +17,14 @@ class MultigoalExperiment(Experiment):
     def __init__(self, conf=None):
         Experiment.__init__(self, conf)
         self.rule = MultigoalCCBorda
+        self.rule_instance = None
         self.thresholds = None
         self.percent_thresholds = None
         self.__config = conf
         self.__generated_dir_path = "generated"
 
     def compute_best_scores(self, profile):
-        rule = self.rule([None, None])  # todo
-        return np.array([get_best_score(rule.rule, profile, self.k) for rule in rule.rules])
+        return np.array([get_best_score(rule.rule, profile, self.k) for rule in self.rule().rules])
 
     def get_filename(self):
         thresholds_str = '_'.join([str(t) for t in self.percent_thresholds])    # todo tres
@@ -43,9 +43,17 @@ class MultigoalExperiment(Experiment):
         self.filename = self.get_filename()
         self.set_generated_dir_path(self.filename)
 
-    def run(self, visualization=False, n=1, method='ILP',
+    def n_rules(self):
+        if self.percent_thresholds is not None:
+            return len(self.percent_thresholds)
+        if self.thresholds is not None:
+            return len(self.thresholds)
+
+    def run(self, visualization=False, n=1, methods=None,
             save_win=True, save_in=True, save_out=True, save_best=True, save_score=True):
         dir_path = self.get_generated_dir_path()
+        if methods is None:
+            methods = ['ILP']
 
         try:
             helpers.make_dirs(dir_path, exist_ok=True)
@@ -53,30 +61,39 @@ class MultigoalExperiment(Experiment):
             if not os.path.isdir(dir_path):
                 raise e
 
-        for i in range(n):
+        for i in range(1, n+1):
+
             candidates, voters, preferences = self.__execute_commands()
             if save_in:
                 multigoal_save_to_file(self, FileType.IN_FILE, i, candidates, voters)
             if save_out:
                 multigoal_save_to_file(self, FileType.OUT_FILE, i, candidates, voters, preferences)
 
-            candidates_list = list(range(len(candidates)))
-            profile = Profile(candidates_list, preferences)
-            best_scores = self.compute_best_scores(profile)
+            for method in methods:
+                filename = self.get_filename()
+                filename = '{}_{}_{}.win'.format(filename, method, i)
+                if os.path.isfile(os.path.join(dir_path, filename)):
+                    print('Skipping {}'.format(i))
+                    continue
 
-            if self.percent_thresholds is not None:
-                self.thresholds = best_scores * np.array(self.percent_thresholds) / 100
+                candidates_list = list(range(len(candidates)))
+                profile = Profile(candidates_list, preferences)
+                best_scores = self.compute_best_scores(profile)
 
-            if save_best:
-                multigoal_save_scores(self, FileType.BEST_FILE, i, best_scores)
+                if self.percent_thresholds is not None:
+                    self.thresholds = best_scores * np.array(self.percent_thresholds) / 100
 
-            winners = self.__run_election(candidates, preferences)
+                if save_best:
+                    multigoal_save_scores(self, FileType.BEST_FILE, i, best_scores)
 
-            if save_win:
-                multigoal_save_to_file(self, FileType.WIN_FILE, i, candidates, voters, preferences, winners, method)
-            if save_score:
-                score = self.rule([None, None]).committee_score(list(winners), profile)   # todo
-                multigoal_save_scores(self, FileType.SCORE_FILE, i, score, method=method)
+                winners = list(self.__run_election(candidates, preferences))
+
+                if save_win:
+                    multigoal_save_to_file(
+                        self, FileType.WIN_FILE, i, candidates, voters, preferences, winners, method=method)
+                if save_score:
+                    score = self.rule().committee_score(winners, profile)   # todo
+                    multigoal_save_scores(self, FileType.SCORE_FILE, i, score, method=method)
 
     def __execute_commands(self):
         candidates = self.__config.get_candidates()

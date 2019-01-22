@@ -17,7 +17,7 @@ class MultigoalCCBorda(MultigoalRule):
 
     methods = algorithm.registry
 
-    def __init__(self, (s1, s2), weights=None, log_errors=True):
+    def __init__(self, (s1, s2)=(0, 0), weights=None, log_errors=True):
         MultigoalRule.__init__(self,
                                [ThresholdRule(ChamberlinCourant(), s1),
                                 ThresholdRule(Borda(), s2)],

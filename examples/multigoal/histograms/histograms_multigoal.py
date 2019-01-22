@@ -1,17 +1,16 @@
 from pmp.experiments import generate_uniform
-from pmp.experiments.multigoal_histograms import visualize_elections
 from pmp.multigoal import MultigoalExperimentConfig, MultigoalExperiment
 from pmp.multigoal.helpers import get_distribution_name
-from pmp.multigoal.visualize import draw_histogram
+from pmp.multigoal.visualize import draw_histogram, visualize_elections
 from pmp.rules import MultigoalBlocBorda
 
 # Configuration
 m = 10   # candidates number
 n = 20   # voters number
 k = 3   # committee_size
-repetitions = 10
+repetitions = 3
 multigoal_rule = MultigoalBlocBorda
-percentages = [10, 10]
+percentages = [100, 90]
 
 distribution = generate_uniform
 
@@ -22,7 +21,7 @@ config.set_distribution_name(get_distribution_name(distribution))
 
 experiment = MultigoalExperiment(config)
 experiment.set_multigoal_election(multigoal_rule, k, percent_thresholds=percentages)
-experiment.run(visualization=True, n=repetitions, save_in=True, save_out=True, save_win=True)
+experiment.run(visualization=True, n=repetitions, method='ILP')
 
 out_dir = experiment.get_generated_dir_path()
 draw_histogram(out_dir, multigoal_rule, k, percentages, distribution, repetitions, n, m, 'ILP')

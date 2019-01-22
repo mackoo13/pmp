@@ -31,6 +31,14 @@ def __file_path_stamped(path, filename, file_extension, number):
     return os.path.join(path, temp_filename + file_extension)
 
 
+def build_filename(experiment, file_type, number, method=None):
+    file_extension = __get_extension(file_type)
+    if file_type in [FileType.WIN_FILE, FileType.SCORE_FILE]:
+        return '{}_{}_{}{}'.format(experiment.filename, method, number, file_extension)
+    else:
+        return '{}_{}{}'.format(experiment.filename, number, file_extension)
+
+
 def save_to_file(experiment, file_type, number, candidates, voters, preferences=None, winners=None):
     filename = experiment.filename
     path = experiment.get_generated_dir_path()
@@ -57,18 +65,13 @@ def save_to_file(experiment, file_type, number, candidates, voters, preferences=
 
 def multigoal_save_to_file(experiment, file_type, number, candidates, voters, preferences=None, winners=None,
                            method=None):
-    filename = experiment.filename
     path = experiment.get_generated_dir_path()
     k = experiment.k
-    file_extension = __get_extension(file_type)
 
     m = len(candidates)
     n = len(voters)
 
-    if file_type == FileType.WIN_FILE:
-        filename = '{}_{}_{}{}'.format(filename, method, number, file_extension)
-    else:
-        filename = '{}_{}{}'.format(filename, number, file_extension)
+    filename = build_filename(experiment, file_type, number, method=method)
     file_path = os.path.join(path, filename)
 
     with open(file_path, 'w') as file:

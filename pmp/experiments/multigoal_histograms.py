@@ -117,11 +117,4 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
         return None
 
 
-def visualize_elections(current_dir, elections_num=None):
-    for f in glob(os.path.join(current_dir, '*.win'))[:elections_num]:
-        visualize_from_win_file(f)
 
-
-def delete_winner_files(current_dir):
-    for f in glob(os.path.join(current_dir, '*.win')):
-        os.remove(f)
