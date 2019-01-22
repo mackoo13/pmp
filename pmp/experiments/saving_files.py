@@ -49,6 +49,35 @@ def save_to_file(experiment, file_type, number, candidates, voters, preferences=
                 __save_winners(file, winners, candidates)
 
 
+def multigoal_save_to_file(experiment, file_type, number, candidates, voters, preferences=None, winners=None,
+                           method=None):
+    filename = experiment.filename
+    path = experiment.get_generated_dir_path()
+    k = experiment.k
+    file_extension = __get_extension(file_type)
+
+    m = len(candidates)
+    n = len(voters)
+
+    if file_type == FileType.WIN_FILE:
+        filename = '{}_{}_{}{}'.format(filename, number, method, file_extension)
+    else:
+        filename = '{}_{}{}'.format(filename, number, file_extension)
+    file_path = os.path.join(path, filename)
+
+    with open(file_path, 'w') as file:
+        if file_type == FileType.IN_FILE:
+            file.write('{} {}\n'.format(m, n))
+            __save_content(file, candidates)
+            __save_content(file, voters)
+        else:
+            file.write('{} {} {}\n'.format(m, n, k))
+            __save_candidates(file, candidates)
+            __save_preferences(file, voters, preferences)
+            if file_type == FileType.WIN_FILE:
+                __save_winners(file, winners, candidates)
+
+
 def __save_content(file, content):
     for i in range(len(content)):
         result = __get_content_string(content[i])

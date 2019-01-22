@@ -143,11 +143,3 @@ def visualize_elections(current_dir, elections_num=None):
 def delete_winner_files(current_dir):
     for f in glob(os.path.join(current_dir, '*.win')):
         os.remove(f)
-
-
-def get_distribution_name(distribution):
-    if distribution.__name__ == 'generate_uniform':
-        return 'square'
-    elif distribution.__name__ == 'generate_circle':
-        return'circle'
-    return 'gauss'

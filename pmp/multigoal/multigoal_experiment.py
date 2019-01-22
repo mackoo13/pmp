@@ -1,10 +1,10 @@
 from random import seed
 
-from pmp.experiments.experiment import preference_orders, image_import_fail, visualize
+from pmp.experiments.experiment import preference_orders
 from pmp.experiments.helpers import Command
 from pmp.preferences import Profile
 from pmp.rules import MultigoalCCBorda
-from pmp.experiments import Experiment, save_to_file, FileType, helpers, impartial
+from pmp.experiments import Experiment, multigoal_save_to_file, FileType, helpers, impartial
 import os
 
 
@@ -16,6 +16,12 @@ class MultigoalExperiment(Experiment):
         self.__config = conf
         self.__generated_dir_path = "generated"
 
+    def get_filename(self):
+        thresholds_str = '_'.join([str(t) for t in self.thresholds])
+        return '{}_{}_{}_k{}_n{}_m{}'.format(
+            self.rule.__name__, self.__config.distribution_name, thresholds_str,
+            self.k, len(self.__config.get_voters()), len(self.__config.get_candidates()))
+
     def set_election(self, rule, k):
         raise Exception('In MultigoalExperiment')
 
@@ -23,9 +29,10 @@ class MultigoalExperiment(Experiment):
         self.rule = rule
         self.thresholds = thresholds
         self.k = int(k)
+        self.filename = self.get_filename()
 
-    def run(self, visualization=False, n=1, save_win=False, save_in=False, save_out=False):
-        dir_path = self.__generated_dir_path
+    def run(self, visualization=False, n=1, save_win=False, save_in=False, save_out=False, method='ILP'):
+        dir_path = self.get_generated_dir_path()
 
         try:
             helpers.make_dirs(dir_path, exist_ok=True)
@@ -36,14 +43,14 @@ class MultigoalExperiment(Experiment):
         for i in range(n):
             candidates, voters, preferences = self.__execute_commands()
             if save_in:
-                save_to_file(self, FileType.IN_FILE, i, candidates, voters)
+                multigoal_save_to_file(self, FileType.IN_FILE, i, candidates, voters)
             if save_out:
-                save_to_file(self, FileType.OUT_FILE, i, candidates, voters, preferences)
+                multigoal_save_to_file(self, FileType.OUT_FILE, i, candidates, voters, preferences)
 
             winners = self.__run_election(candidates, preferences)
 
             if save_win:
-                save_to_file(self, FileType.WIN_FILE, i, candidates, voters, preferences, winners)
+                multigoal_save_to_file(self, FileType.WIN_FILE, i, candidates, voters, preferences, winners, method)
 
     def __execute_commands(self):
         candidates = self.__config.get_candidates()

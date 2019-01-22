@@ -1,1 +1,2 @@
 from .multigoal_experiment import MultigoalExperiment
+from .multigoal_experiment_config import MultigoalExperimentConfig

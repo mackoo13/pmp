@@ -1,8 +1,8 @@
+from pmp.multigoal.helpers import get_distribution_name
 from pmp.rules import MultigoalBlocBorda, MultigoalCCBorda
 
 try:
-    from pmp.experiments import experiment_config
-    from pmp.multigoal import MultigoalExperiment
+    from pmp.multigoal import MultigoalExperiment, MultigoalExperimentConfig
     from pmp.experiments import generate_uniform, impartial
     from pmp.rules.bloc import Bloc
     from pmp.rules.borda import Borda
@@ -12,14 +12,15 @@ except (ImportError, NameError) as e:
     exit()
 
 # Generating voters and candidates using functions and lambdas
-config = experiment_config.ExperimentConfig()
-config.set_candidates(generate_uniform(-3, -3, 3, 3, 100, 'None'))
-config.add_candidates(lambda: generate_uniform(-3, -3, 3, 3, 10, 'None'))
-config.add_voters(generate_uniform(-3, -3, 3, 3, 10, 'None'))
+distribution = generate_uniform
+
+config = MultigoalExperimentConfig()
+config.set_candidates(distribution(-3, -3, 3, 3, 100, 'None'))
+config.add_voters(distribution(-3, -3, 3, 3, 10, 'None'))
+config.set_distribution_name(get_distribution_name(distribution))
 
 experiment = MultigoalExperiment(config)
 experiment.set_multigoal_election(MultigoalCCBorda, [5, 6], 3)
-experiment.set_filename("bloc3")
 experiment.set_generated_dir_path("bloc_example")
 experiment.run(visualization=True, n=2, save_in=True, save_out=True, save_win=True)
 
