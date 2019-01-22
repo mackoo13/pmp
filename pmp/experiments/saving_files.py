@@ -8,6 +8,8 @@ class FileType(Enum):
     IN_FILE = 1,
     OUT_FILE = 2,
     WIN_FILE = 3
+    BEST_FILE = 4
+    SCORE_FILE = 5
 
 
 def __get_extension(file_type):
@@ -17,6 +19,10 @@ def __get_extension(file_type):
         return ".out"
     elif file_type == FileType.WIN_FILE:
         return ".win"
+    elif file_type == FileType.BEST_FILE:
+        return ".best"
+    elif file_type == FileType.SCORE_FILE:
+        return ".score"
 
 
 def __file_path_stamped(path, filename, file_extension, number):
@@ -60,7 +66,7 @@ def multigoal_save_to_file(experiment, file_type, number, candidates, voters, pr
     n = len(voters)
 
     if file_type == FileType.WIN_FILE:
-        filename = '{}_{}_{}{}'.format(filename, number, method, file_extension)
+        filename = '{}_{}_{}{}'.format(filename, method, number, file_extension)
     else:
         filename = '{}_{}{}'.format(filename, number, file_extension)
     file_path = os.path.join(path, filename)
@@ -70,12 +76,29 @@ def multigoal_save_to_file(experiment, file_type, number, candidates, voters, pr
             file.write('{} {}\n'.format(m, n))
             __save_content(file, candidates)
             __save_content(file, voters)
-        else:
+        elif file_type in [FileType.OUT_FILE, FileType.WIN_FILE]:
             file.write('{} {} {}\n'.format(m, n, k))
             __save_candidates(file, candidates)
             __save_preferences(file, voters, preferences)
             if file_type == FileType.WIN_FILE:
                 __save_winners(file, winners, candidates)
+        else:
+            raise ValueError
+
+
+def multigoal_save_scores(experiment, file_type, number, scores, method=None):
+    filename = experiment.filename
+    path = experiment.get_generated_dir_path()
+    file_extension = __get_extension(file_type)
+
+    if file_type == FileType.SCORE_FILE:
+        filename = '{}_{}_{}{}'.format(filename, method, number, file_extension)
+    else:
+        filename = '{}_{}{}'.format(filename, number, file_extension)
+    file_path = os.path.join(path, filename)
+
+    with open(file_path, 'w') as file:
+        __save_scores(file, scores)
 
 
 def __save_content(file, content):
@@ -97,6 +120,10 @@ def __save_preferences(file, voters, preferences):
         voter = __get_content_string(voters[i][:-1])
         result = '{} {}\n'.format(preference, voter)
         file.write(result)
+
+
+def __save_scores(file, scores):
+    file.write(' '.join([str(s) for s in scores]))
 
 
 def __save_winners(file, winners, candidates):

@@ -1,5 +1,5 @@
 from pmp.multigoal.helpers import get_distribution_name
-from pmp.rules import MultigoalBlocBorda, MultigoalCCBorda
+from pmp.rules import MultigoalCCBorda
 
 try:
     from pmp.multigoal import MultigoalExperiment, MultigoalExperimentConfig
@@ -21,7 +21,6 @@ config.set_distribution_name(get_distribution_name(distribution))
 
 experiment = MultigoalExperiment(config)
 experiment.set_multigoal_election(MultigoalCCBorda, [5, 6], 3)
-experiment.set_generated_dir_path("bloc_example")
 experiment.run(visualization=True, n=2, save_in=True, save_out=True, save_win=True)
 
 # Adding one voter and one candidate

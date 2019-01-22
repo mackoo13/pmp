@@ -117,24 +117,6 @@ def generate_winner_files(current_dir, m, n, k, multigoal_rule, percentages,
         return None
 
 
-def draw_histogram(current_dir, multigoal_rule, k, percentages, distribution, reps, n, m, threshold=None, methods=None):
-    if methods is None:
-        methods = ['ILP']
-
-    distribution_name = get_distribution_name(distribution)
-    perc = '_'.join([str(p) for p in percentages])
-
-    for method in methods:
-        winner_filename = '{}_{}_{}_k{}_n{}_m{}_{}'.format(multigoal_rule.__name__, distribution_name, perc, k, n, m, method)
-        file_path = os.path.join(current_dir, winner_filename)
-        mw2d_generate_histogram(file_path, reps)
-
-        histogram_filename = file_path + '.hist'
-        mw2d_draw_histogram(histogram_filename, threshold)
-
-        os.remove(histogram_filename)
-
-
 def visualize_elections(current_dir, elections_num=None):
     for f in glob(os.path.join(current_dir, '*.win'))[:elections_num]:
         visualize_from_win_file(f)
