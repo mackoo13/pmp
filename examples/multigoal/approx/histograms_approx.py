@@ -5,10 +5,8 @@ from pmp.multigoal.helpers import get_distribution_name
 from pmp.rules import MultigoalCCBorda
 import os
 
-
 current_file = os.path.abspath(__file__)
 current_dir = os.path.dirname(current_file)
-
 
 # Configuration
 m = 10   # candidates number
@@ -34,4 +32,3 @@ experiment.run(n=repetitions, methods=methods)
 
 approximations = calculate_approx(experiment, methods, repetitions)
 # draw_approximation_charts(experiment)
-pass

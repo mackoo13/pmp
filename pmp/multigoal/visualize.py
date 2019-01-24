@@ -1,6 +1,5 @@
 import os
 from glob import glob
-
 from pmp.MW2D import mw2d_generate_histogram, mw2d_draw_histogram
 from pmp.experiments import visualize_from_win_file
 from pmp.multigoal.helpers import get_distribution_name

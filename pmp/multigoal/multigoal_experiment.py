@@ -24,10 +24,14 @@ class MultigoalExperiment(Experiment):
         self.__generated_dir_path = "generated"
 
     def compute_best_scores(self, profile):
-        return np.array([get_best_score(rule.rule, profile, self.k) for rule in self.rule().rules])
+        return np.array([get_best_score(rule.rule, profile, self.k)
+                         for rule in self.rule([0] * len(self.percent_thresholds)).rules])
 
     def refresh_filename(self):
-        thresholds_str = '_'.join([str(t) for t in self.percent_thresholds])    # todo tres
+        if self.percent_thresholds is not None:
+            thresholds_str = '_'.join([str(t) for t in self.percent_thresholds])
+        else:
+            thresholds_str = '_'.join([str(t) for t in self.thresholds])
 
         candidates, voters, _ = self.__execute_commands()
 
@@ -91,6 +95,7 @@ class MultigoalExperiment(Experiment):
 
                 if self.percent_thresholds is not None:
                     self.thresholds = best_scores * np.array(self.percent_thresholds) / 100
+                n_thresholds = len(self.thresholds)
 
                 if save_best:
                     multigoal_save_scores(self, FileType.BEST_FILE, i_per_method, best_scores)
@@ -107,7 +112,7 @@ class MultigoalExperiment(Experiment):
                         self, FileType.WIN_FILE, i_per_method, candidates, voters, preferences, winners, method=method)
                     print('Generated: {} ({})'.format(method, i_per_method))
                 if save_score:
-                    score = self.rule().committee_score(winners, profile)   # todo
+                    score = self.rule([0] * n_thresholds).committee_score(winners, profile)
                     multigoal_save_scores(self, FileType.SCORE_FILE, i_per_method, score, method=method)
 
     def __execute_commands(self):

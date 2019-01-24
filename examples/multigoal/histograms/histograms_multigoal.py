@@ -27,4 +27,4 @@ experiment.run(visualization=True, n=repetitions, methods=methods)
 out_dir = experiment.get_generated_dir_path()
 for method in methods:
     draw_histogram(out_dir, multigoal_rule, k, percentages, distribution, repetitions, n, m, method)
-visualize_elections(out_dir)
+# visualize_elections(out_dir)

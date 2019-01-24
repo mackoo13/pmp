@@ -18,13 +18,11 @@ def calculate_approx(experiment, methods, reps):
     def get_winner_scores(method, rep):
         score_file_name = '{}_{}_{}.score'.format(file_prefix, method, rep)
         score_file_path = os.path.join(out_dir, score_file_name)
-
         return read_scores(score_file_path)
 
     def get_best_scores(rep):
         best_file_name = '{}_{}.best'.format(file_prefix, rep)
         best_file_path = os.path.join(out_dir, best_file_name)
-
         return read_scores(best_file_path)
 
     res = np.zeros((len(methods), n_rules, reps))
