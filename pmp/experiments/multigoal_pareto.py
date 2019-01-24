@@ -8,7 +8,8 @@ from pmp.MW2D import create_pref_orders
 from pmp.experiments import generate_uniform
 from pmp.experiments.experiment import preference_orders
 from pmp.experiments.visualize import read_data
-from pmp.experiments.multigoal_histograms import generate_preference_file, get_distribution_name
+from pmp.experiments.multigoal_histograms import generate_preference_file
+from pmp.multigoal.helpers import get_distribution_name
 from pmp.preferences import Profile
 from pmp.rules import Bloc, Borda, ChamberlinCourant
 from pmp.rules.utils import get_best_score
