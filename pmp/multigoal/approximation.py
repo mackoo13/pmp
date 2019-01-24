@@ -5,7 +5,7 @@ from pmp.multigoal.helpers import get_distribution_name
 
 
 def calculate_approx(experiment, methods, reps):
-    file_prefix = experiment.get_filename()
+    file_prefix = experiment.filename
     out_dir = experiment.get_generated_dir_path()
     n_rules = experiment.n_rules()
 

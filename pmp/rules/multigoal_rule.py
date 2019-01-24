@@ -1,16 +1,14 @@
 import numpy as np
 from itertools import combinations
-
 from pmp.rules.utils import get_best_score
 from .._common import solve_methods_registry
-
 from .tie_breaking import random_winner
 from ..utils.ilp import *
 
 algorithm = solve_methods_registry()
 
 
-class MultigoalRule():
+class MultigoalRule:
     def __init__(self, rules, tie_break=random_winner, log_errors=True):
         self.rules = rules
         self.tie_break = tie_break

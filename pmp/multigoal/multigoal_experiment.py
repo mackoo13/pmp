@@ -48,7 +48,7 @@ class MultigoalExperiment(Experiment):
         self.thresholds = thresholds
         self.percent_thresholds = percent_thresholds
         self.refresh_filename()
-        self.set_generated_dir_path(self.filename)
+        self.set_generated_dir_path(os.path.join('results', self.filename))
 
     def n_rules(self):
         if self.percent_thresholds is not None:
@@ -128,7 +128,7 @@ class MultigoalExperiment(Experiment):
                 candidates, voters, preferences = impartial(*args)
         if not preferences:
             preferences = preference_orders(candidates, voters)
-        if any(isinstance(candidate, int) or len(candidate) != 3 for candidate in candidates ):
+        if any(isinstance(candidate, int) or len(candidate) != 3 for candidate in candidates):
             self.two_dimensional = False
         return candidates, voters, preferences
 

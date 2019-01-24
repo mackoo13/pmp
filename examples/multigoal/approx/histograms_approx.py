@@ -21,11 +21,11 @@ thresholds = [10, 10]
 
 distribution = generate_uniform
 
-repetitions = 2
+repetitions = 3
 
 config = MultigoalExperimentConfig()
-config.set_candidates(distribution(-3, -3, 3, 3, m, 'None'))
-config.add_voters(distribution(-3, -3, 3, 3, n, 'None'))
+config.add_candidates(lambda: distribution(-3, -3, 3, 3, m, 'None'))
+config.add_voters(lambda: distribution(-3, -3, 3, 3, n, 'None'))
 config.set_distribution_name(get_distribution_name(distribution))
 
 experiment = MultigoalExperiment(config)
@@ -34,3 +34,4 @@ experiment.run(n=repetitions, methods=methods)
 
 approximations = calculate_approx(experiment, methods, repetitions)
 # draw_approximation_charts(experiment)
+pass

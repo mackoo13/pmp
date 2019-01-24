@@ -94,8 +94,8 @@ class MultigoalCCBorda(MultigoalRule):
         model.add_constraints(c3_variables, c3_coefficients, c3_senses, c3_rights)
 
         # Constraint4 - CC
-        objective_iterable = (self.rules[0].rule.satisfaction(profile.preferences[j], profile.candidates[i]) for (i, j) in
-                              all_ij)
+        objective_iterable = (self.rules[0].rule.satisfaction(profile.preferences[j], profile.candidates[i]) for (i, j)
+                              in all_ij)
         yij_weights = np.fromiter(objective_iterable, int, n * m)
         model.add_constraint(y, yij_weights, Sense.gt, self.rules[0].s)
 
