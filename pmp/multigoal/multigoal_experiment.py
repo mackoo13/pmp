@@ -1,6 +1,5 @@
 from random import seed
 
-import numpy as np
 from cplex.exceptions import CplexSolverError
 
 from pmp.experiments.experiment import preference_orders
@@ -8,9 +7,9 @@ from pmp.experiments.helpers import Command
 from pmp.preferences import Profile
 from pmp.rules import MultigoalCCBorda
 from pmp.experiments import Experiment, multigoal_save_to_file, multigoal_save_scores, FileType, helpers, impartial
-import os
-
 from pmp.rules.utils import get_best_score
+import numpy as np
+import os
 
 
 class MultigoalExperiment(Experiment):
@@ -20,17 +19,25 @@ class MultigoalExperiment(Experiment):
         self.rule_instance = None
         self.thresholds = None
         self.percent_thresholds = None
+        self.filename = None
         self.__config = conf
         self.__generated_dir_path = "generated"
 
     def compute_best_scores(self, profile):
         return np.array([get_best_score(rule.rule, profile, self.k) for rule in self.rule().rules])
 
-    def get_filename(self):
+    def refresh_filename(self):
         thresholds_str = '_'.join([str(t) for t in self.percent_thresholds])    # todo tres
-        return '{}_{}_{}_k{}_n{}_m{}'.format(
+
+        candidates, voters, _ = self.__execute_commands()
+
+        self.filename = '{}_{}_{}_k{}_n{}_m{}'.format(
             self.rule.__name__, self.__config.distribution_name, thresholds_str,
-            self.k, len(self.__config.get_voters()), len(self.__config.get_candidates()))
+            self.k, len(voters), len(candidates))
+
+    def get_profile(self, candidates, preferences):
+        candidates_list = list(range(len(candidates)))
+        return Profile(candidates_list, preferences)
 
     def set_election(self, rule, k):
         raise Exception('In MultigoalExperiment')
@@ -40,7 +47,7 @@ class MultigoalExperiment(Experiment):
         self.k = int(k)
         self.thresholds = thresholds
         self.percent_thresholds = percent_thresholds
-        self.filename = self.get_filename()
+        self.refresh_filename()
         self.set_generated_dir_path(self.filename)
 
     def n_rules(self):
@@ -61,39 +68,47 @@ class MultigoalExperiment(Experiment):
             if not os.path.isdir(dir_path):
                 raise e
 
-        for i in range(1, n+1):
+        i = 1
+        while i <= n * len(methods):
 
+            i_per_method = (i-1) / len(methods) + 1
             candidates, voters, preferences = self.__execute_commands()
             if save_in:
-                multigoal_save_to_file(self, FileType.IN_FILE, i, candidates, voters)
+                multigoal_save_to_file(self, FileType.IN_FILE, i_per_method, candidates, voters)
             if save_out:
-                multigoal_save_to_file(self, FileType.OUT_FILE, i, candidates, voters, preferences)
+                multigoal_save_to_file(self, FileType.OUT_FILE, i_per_method, candidates, voters, preferences)
 
             for method in methods:
-                filename = self.get_filename()
-                filename = '{}_{}_{}.win'.format(filename, method, i)
+                filename = self.filename
+                filename = '{}_{}_{}.win'.format(filename, method, i_per_method)
                 if os.path.isfile(os.path.join(dir_path, filename)):
-                    print('Skipping {}'.format(i))
+                    print('Skipping: {} (already generated)'.format(filename))
+                    i += 1
                     continue
 
-                candidates_list = list(range(len(candidates)))
-                profile = Profile(candidates_list, preferences)
+                profile = self.get_profile(candidates, preferences)
                 best_scores = self.compute_best_scores(profile)
 
                 if self.percent_thresholds is not None:
                     self.thresholds = best_scores * np.array(self.percent_thresholds) / 100
 
                 if save_best:
-                    multigoal_save_scores(self, FileType.BEST_FILE, i, best_scores)
+                    multigoal_save_scores(self, FileType.BEST_FILE, i_per_method, best_scores)
 
-                winners = list(self.__run_election(candidates, preferences))
+                try:
+                    winners = list(self.__run_election(candidates, preferences, method=method))
+                    i += 1
+                except CplexSolverError:
+                    print('No solution found by Cplex: retry')
+                    continue
 
                 if save_win:
                     multigoal_save_to_file(
-                        self, FileType.WIN_FILE, i, candidates, voters, preferences, winners, method=method)
+                        self, FileType.WIN_FILE, i_per_method, candidates, voters, preferences, winners, method=method)
+                    print('Generated: {} ({})'.format(method, i_per_method))
                 if save_score:
                     score = self.rule().committee_score(winners, profile)   # todo
-                    multigoal_save_scores(self, FileType.SCORE_FILE, i, score, method=method)
+                    multigoal_save_scores(self, FileType.SCORE_FILE, i_per_method, score, method=method)
 
     def __execute_commands(self):
         candidates = self.__config.get_candidates()
@@ -118,18 +133,12 @@ class MultigoalExperiment(Experiment):
         return candidates, voters, preferences
 
     # run election, compute winners
-    def __run_election(self, candidates, preferences):
+    def __run_election(self, candidates, preferences, method='ILP'):
         seed()
 
-        candidates_list = list(range(len(candidates)))
-        profile = Profile(candidates_list, preferences)
+        profile = self.get_profile(candidates, preferences)
         if self.k > len(candidates):
             print("k is too big. Not enough candidates to find k winners.")
             return
 
-        MAX_TRIALS = 9
-        for i in range(MAX_TRIALS):
-            try:
-                return self.rule(self.thresholds).find_committee(self.k, profile, method='ILP')
-            except CplexSolverError:
-                continue
+        return self.rule(self.thresholds).find_committee(self.k, profile, method=method)
