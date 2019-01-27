@@ -46,7 +46,7 @@ def draw_pareto_chart_from_winner_files(current_dir, m, n, k, multigoal_rule, di
     if not rules:
         return
 
-    # y_samples = np.zeros((len(x), repetitions))
+    xy = {}
 
     for dir_name in os.listdir(current_dir):
         dir_pattern = '{}_{}_(\d+)_(\d+)_k{}_n{}_m{}'.format(rule_name, distribution_name, k, n, m)
@@ -57,24 +57,33 @@ def draw_pareto_chart_from_winner_files(current_dir, m, n, k, multigoal_rule, di
 
         for filename in os.listdir(os.path.join(current_dir, dir_name)):
             win_pattern = '{}_ILP_(\d+).score'.format(dir_name)
-            rm = re.match(win_pattern, filename)
+            rep_match = re.match(win_pattern, filename)
 
-            if not rm:
+            if not rep_match:
                 continue
 
-            r  =rm.group(1)
+            rep = rep_match.group(1)
             win_filename = os.path.join(current_dir, dir_name, filename)
-            bf='{}_{}.best'.format(dir_name,r)
+            bf='{}_{}.best'.format(dir_name,rep)
             bf=os.path.join(current_dir, dir_name, bf)
 
             scores = read_scores(win_filename)
             best = read_scores(bf)
 
             approx2 = scores[1] / best[1]
-            print(r1, approx2)
+            if r1 in xy:
+                xy[r1].append(approx2)
+            else:
+                xy[r1] = []
 
-    # title = "voters: {}, candidates: {}, committee size: {}".format(n, m, k)
-    # plot(current_dir, x, np.mean(y_samples, axis=0), np.min(y_samples, axis=0), rules, title=title)
+    xy_list = list(xy.items())
+    xy_list = sorted(xy_list, key=lambda e: int(e[0]))
+    x = [int(x) for x, _ in xy_list]
+    y_mean = [np.mean(ys) for _, ys in xy_list]
+    y_min = [np.min(ys) for _, ys in xy_list]
+
+    title = "voters: {}, candidates: {}, committee size: {}".format(n, m, k)
+    plot(current_dir, x,y_mean, y_min, rules, title=title)
 
 
 def generate_winner_files_for_pareto(config, multigoal_rule, k, repetitions, start=70, step=2):
