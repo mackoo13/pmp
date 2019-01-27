@@ -60,7 +60,7 @@ class MultigoalExperiment(Experiment):
         if self.thresholds is not None:
             return len(self.thresholds)
 
-    def run(self, visualization=False, n=1, methods=None,
+    def run(self, visualization=False, n=1, n_start=1, methods=None,
             save_win=True, save_in=True, save_out=True, save_best=True, save_score=True):
         dir_path = self.get_generated_dir_path()
         if methods is None:
@@ -73,9 +73,11 @@ class MultigoalExperiment(Experiment):
                 raise e
 
         i = 1
+        cplex_trials = 0
+        max_trials = 1      # todo
         while i <= n * len(methods):
 
-            i_per_method = (i-1) / len(methods) + 1
+            i_per_method = (i-1) / len(methods) + n_start
             candidates, voters, preferences = self.__execute_commands()
             if save_in:
                 multigoal_save_to_file(self, FileType.IN_FILE, i_per_method, candidates, voters)
@@ -103,9 +105,15 @@ class MultigoalExperiment(Experiment):
                 try:
                     winners = list(self.__run_election(candidates, preferences, method=method))
                     i += 1
-                except CplexSolverError:
-                    print('No solution found by Cplex: retry')
-                    continue
+                    cplex_trials = 0
+                except CplexSolverError as e:
+                    if cplex_trials < max_trials:
+                        print('No solution found by Cplex: retry')
+                        cplex_trials += 1
+                        continue
+                    else:
+                        print('No solution found by Cplex: give up :(')
+                        raise e
 
                 if save_win:
                     multigoal_save_to_file(

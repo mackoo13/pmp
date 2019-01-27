@@ -9,12 +9,6 @@ def calculate_approx(experiment, methods, reps):
     out_dir = experiment.get_generated_dir_path()
     n_rules = experiment.n_rules()
 
-    def read_scores(file_path):
-        with open(file_path, 'r') as f:
-            scores = f.read().strip().split()
-            scores = np.array(scores).astype('float')
-        return scores
-
     def get_winner_scores(method, rep):
         score_file_name = '{}_{}_{}.score'.format(file_prefix, method, rep)
         score_file_path = os.path.join(out_dir, score_file_name)
