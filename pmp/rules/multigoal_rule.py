@@ -2,7 +2,6 @@ import numpy as np
 from itertools import combinations
 from pmp.rules.utils import get_best_score
 from .._common import solve_methods_registry
-
 from .tie_breaking import random_winner
 from ..utils.ilp import *
 
@@ -19,7 +18,7 @@ class MultigoalRule:
     def __str__(self):
         return "MultigoalRule(" + ", ".join([rule.__str__() for rule in self.rules]) + ")"
 
-    def find_committees(self, k, profile, method=None, criterion='max_appr'):
+    def find_committee(self, k, profile, method=None, criterion='max_appr'):
         if method is None:
             committee = algorithm.registry.default(self, k, profile, criterion=criterion)
         else:

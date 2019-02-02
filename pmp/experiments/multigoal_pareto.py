@@ -8,7 +8,8 @@ from pmp.MW2D import create_pref_orders
 from pmp.experiments import generate_uniform
 from pmp.experiments.experiment import preference_orders
 from pmp.experiments.visualize import read_data
-from pmp.experiments.multigoal_histograms import generate_preference_file, get_distribution_name
+from pmp.experiments.multigoal_histograms import generate_preference_file
+from pmp.multigoal.helpers import get_distribution_name
 from pmp.preferences import Profile
 from pmp.rules import Bloc, Borda, ChamberlinCourant
 from pmp.rules.utils import get_best_score
@@ -122,7 +123,7 @@ def generate_winner_files_for_pareto(current_dir, m, n, k, multigoal_rule, distr
 
                 rule = multigoal_rule((rule1_threshold, rule2_threshold), log_errors=log_errors)
                 try:
-                    committee = list(rule.find_committees(k, profile, method='ILP'))
+                    committee = list(rule.find_committee(k, profile, method='ILP'))
 
                     # Generating winners file
                     with open(out_filename, 'w') as out_file:

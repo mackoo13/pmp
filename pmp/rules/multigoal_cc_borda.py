@@ -17,14 +17,14 @@ class MultigoalCCBorda(MultigoalRule):
 
     methods = algorithm.registry
 
-    def __init__(self, (s1, s2), weights=None, log_errors=True):
+    def __init__(self, (s1, s2)=(0, 0), weights=None, log_errors=True):
         MultigoalRule.__init__(self,
                                [ThresholdRule(ChamberlinCourant(), s1),
                                 ThresholdRule(Borda(), s2)],
                                log_errors=log_errors)
         self.weights = weights
 
-    def find_committees(self, k, profile, method=None, criterion='max_appr'):
+    def find_committee(self, k, profile, method=None, criterion='max_appr'):
         if method is None:
             committee = algorithm.registry.default(self, k, profile, criterion=criterion)
         else:
@@ -94,8 +94,8 @@ class MultigoalCCBorda(MultigoalRule):
         model.add_constraints(c3_variables, c3_coefficients, c3_senses, c3_rights)
 
         # Constraint4 - CC
-        objective_iterable = (self.rules[0].rule.satisfaction(profile.preferences[j], profile.candidates[i]) for (i, j) in
-                              all_ij)
+        objective_iterable = (self.rules[0].rule.satisfaction(profile.preferences[j], profile.candidates[i]) for (i, j)
+                              in all_ij)
         yij_weights = np.fromiter(objective_iterable, int, n * m)
         model.add_constraint(y, yij_weights, Sense.gt, self.rules[0].s)
 

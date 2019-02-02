@@ -22,8 +22,8 @@ ccb = MultigoalCCBorda((None, None))
 
 committee_cc = list(cc.find_committee(k, profile))
 committee_b = list(b.find_committee(k, profile))
-committee_ccb_greedy = list(ccb.find_committees(k, profile, method='Approx_Greedy'))
-committee_ccb_p = list(ccb.find_committees(k, profile, method='Approx_P'))
+committee_ccb_greedy = list(ccb.find_committee(k, profile, method='Approx_Greedy'))
+committee_ccb_p = list(ccb.find_committee(k, profile, method='Approx_P'))
 
 score_cc = cc.committee_score(committee_cc, profile)
 score_b = b.committee_score(committee_b, profile)
