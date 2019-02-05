@@ -1,5 +1,4 @@
 import os
-import time
 from pmp.experiments import generate_uniform
 from pmp.multigoal import MultigoalExperimentConfig, generate_winner_files_for_pareto, \
     draw_pareto_chart_from_winner_files
@@ -9,18 +8,17 @@ from pmp.rules import MultigoalCCBorda
 
 current_file = os.path.abspath(__file__)
 current_dir = os.path.dirname(current_file)
-time_str = time.strftime("%Y%m%d-%H%M%S")
-dir_name = 'results' + time_str
 
-repetitions = 20
-k = 20
-n = 200
-m = 200
+repetitions = 1
+k = 5
+n = 20
+m = 20
 multigoal_rule = MultigoalCCBorda
 distribution = generate_uniform
 
 start = 90
 step = 2
+dir_name = 'results_{}_{}_{}_k{}_n{}_m{}'.format(start, step, multigoal_rule.__name__, k, n, m)
 
 configs = []
 for _ in range(repetitions):

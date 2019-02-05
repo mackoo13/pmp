@@ -106,7 +106,7 @@ class MultigoalExperiment(Experiment):
                         cplex_failures += 1
                         continue
                     else:
-                        print('No solution found by Cplex: give up :(')
+                        print('No solution found by Cplex: trials limit exceeded')
                         raise e
 
                 if save_win:
