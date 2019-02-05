@@ -15,6 +15,6 @@ setup(name='pmp',
       license='?',
       packages=setuptools.find_packages(),
       install_requires=[
-      ],
+          'matplotlib', 'numpy', 'cplex'],
       zip_safe=False)
 

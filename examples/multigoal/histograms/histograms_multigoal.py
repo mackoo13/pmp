@@ -22,7 +22,7 @@ config.set_distribution_name(get_distribution_name(distribution))
 
 experiment = MultigoalExperiment(config)
 experiment.set_multigoal_election(multigoal_rule, k, percent_thresholds=percentages)
-experiment.run(visualization=True, n=repetitions, methods=methods)
+experiment.run(visualization=True, n=repetitions, cplex_trials=5, methods=methods)
 
 out_dir = experiment.get_generated_dir_path()
 for method in methods:

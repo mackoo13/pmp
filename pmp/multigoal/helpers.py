@@ -1,4 +1,5 @@
 import numpy as np
+from pmp.preferences import Profile
 
 
 def get_distribution_name(distribution):
@@ -7,6 +8,11 @@ def get_distribution_name(distribution):
     elif distribution.__name__ == 'generate_circle':
         return'circle'
     return 'gauss'
+
+
+def get_profile(candidates, preferences):
+    candidates_list = list(range(len(candidates)))
+    return Profile(candidates_list, preferences)
 
 
 def read_scores(file_path):

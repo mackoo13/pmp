@@ -3,19 +3,11 @@ import re
 import matplotlib.pyplot as plt
 import numpy as np
 from cplex.exceptions import CplexSolverError
-from pmp.experiments.experiment import preference_orders
 from pmp.multigoal import MultigoalExperiment
 from pmp.multigoal.helpers import get_distribution_name, read_scores
-from pmp.preferences import Profile
 
 
-def get_profile(voters, candidates):
-    preferences = preference_orders(candidates, voters)
-    candidates = list(range(len(candidates)))
-    return Profile(candidates, preferences)
-
-
-def plot(current_dir, x, y, mins, rules, title=""):
+def plot(filename, x, y, mins, rules, title=""):
     rule1_name = rules[0].__str__()
     rule2_name = rules[1].__str__()
 
@@ -29,7 +21,7 @@ def plot(current_dir, x, y, mins, rules, title=""):
     plt.title(title)
     plt.legend(['avg', 'min'])
 
-    plt.savefig(current_dir)
+    plt.savefig(filename)
     plt.clf()
 
 
@@ -64,11 +56,11 @@ def draw_pareto_chart_from_winner_files(current_dir, m, n, k, multigoal_rule, di
 
             rep = rep_match.group(1)
             win_filename = os.path.join(current_dir, dir_name, filename)
-            bf='{}_{}.best'.format(dir_name,rep)
-            bf=os.path.join(current_dir, dir_name, bf)
+            best_filename = '{}_{}.best'.format(dir_name, rep)
+            best_filename = os.path.join(current_dir, dir_name, best_filename)
 
             scores = read_scores(win_filename)
-            best = read_scores(bf)
+            best = read_scores(best_filename)
 
             approx2 = scores[1] / best[1]
             if r1 in xy:
@@ -82,29 +74,28 @@ def draw_pareto_chart_from_winner_files(current_dir, m, n, k, multigoal_rule, di
     y_mean = [np.mean(ys) for _, ys in xy_list]
     y_min = [np.min(ys) for _, ys in xy_list]
 
+    filename = '{}_{}_k{}_n{}_m{}'.format(rule_name, distribution_name, k, n, m)
     title = "voters: {}, candidates: {}, committee size: {}".format(n, m, k)
-    plot(current_dir, x,y_mean, y_min, rules, title=title)
+    plot(filename, x, y_mean, y_min, rules, title=title)
 
 
-def generate_winner_files_for_pareto(config, multigoal_rule, k, repetitions, start=70, step=2):
+def generate_winner_files_for_pareto(dir_name, configs, multigoal_rule, k, start=70, step=2):
     rules = get_multigoal_rules(multigoal_rule)
     if not rules:
         return
 
     x = np.array([a for a in range(start, 101, step)])
 
-    for i, r1 in enumerate(x):
-        repetition = 1
-        while repetition <= repetitions:
-            experiment = MultigoalExperiment(config)
+    for repetition, config in enumerate(configs):
+        experiment = MultigoalExperiment(config, dir_name=dir_name)
 
+        for i, r1 in enumerate(x):
             for r2 in range(100, 0, -step):
                 experiment.set_multigoal_election(multigoal_rule, k, percent_thresholds=(r1, r2))
 
                 try:
-                    experiment.run(n=1, n_start=repetition,
+                    experiment.run(n=1, n_start=repetition+1,
                                    save_in=False, save_out=False, save_win=True, save_best=True, save_score=True)
-                    repetition += 1
                     break
                 except CplexSolverError:
                     continue
