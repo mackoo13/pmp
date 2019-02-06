@@ -159,6 +159,9 @@ class MultigoalCCBorda(MultigoalRule):
         self.rules[1].rule.initialise_weights(k, profile)
         self.rules[1].rule.compute_candidate_scores(k, profile)
 
+        if len(committee) == k:
+            return committee
+
         for cand in sorted(profile.scores, key=lambda c: profile.scores.get(c), reverse=True):
             committee.add(cand)
             if len(committee) == k:

@@ -1,7 +1,7 @@
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-from pmp.multigoal.helpers import get_distribution_name
+from pmp.multigoal.helpers import get_distribution_name, read_scores
 
 
 def calculate_approx(experiment, methods, reps):

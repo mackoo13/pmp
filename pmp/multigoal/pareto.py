@@ -105,7 +105,7 @@ def generate_winner_files_for_pareto(dir_name, configs, multigoal_rule, k, start
 
     x = np.array([a for a in range(start, 101, step)])
 
-    for repetition, config in enumerate(configs):
+    for repetition, config in enumerate(configs[n_start:]):
         experiment = MultigoalExperiment(config, dir_name=dir_name)
 
         for i, r1 in enumerate(x):
