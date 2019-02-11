@@ -64,7 +64,7 @@ def save_to_file(experiment, file_type, number, candidates, voters, preferences=
 
 
 def multigoal_save_to_file(experiment, file_type, number, candidates, voters, preferences=None, winners=None,
-                           method=None):
+                           method=None, overwrite=True):
     path = experiment.get_generated_dir_path()
     k = experiment.k
 
@@ -73,6 +73,8 @@ def multigoal_save_to_file(experiment, file_type, number, candidates, voters, pr
 
     filename = build_filename(experiment, file_type, number, method=method)
     file_path = os.path.join(path, filename)
+    if not overwrite and os.path.isfile(file_path):
+        return
 
     with open(file_path, 'w') as file:
         if file_type == FileType.IN_FILE:
