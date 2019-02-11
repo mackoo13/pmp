@@ -52,7 +52,7 @@ def mw2d_draw_histogram(filename, threshold=None):
             for x in range(W):
                 if HISTOGRAM[y][x] > 0:
                     inte = 255 - int(255 * (float(HISTOGRAM[y][x]) / MAX))
-                    dr.point((x, (H - 1) - y), fill="rgb(255,%d,%d)" % (inte, inte))
+                    dr.point((x, (H - 1) - y), fill="rgb(%d,%d,255)" % (inte, inte))
     else:
         MAX_VAL = 0.0
         print "GLOBAL NORMALIZATION"
