@@ -28,7 +28,7 @@ config.set_distribution_name(get_distribution_name(distribution))
 
 experiment = MultigoalExperiment(config)
 experiment.set_multigoal_election(MultigoalCCBorda, k, percent_thresholds=thresholds)
-experiment.run(n=repetitions, methods=methods)
+experiment.run(n=repetitions, methods=methods, cplex_trials=5)
 
 approximations = calculate_approx(experiment, methods, repetitions)
 # draw_approximation_charts(experiment)

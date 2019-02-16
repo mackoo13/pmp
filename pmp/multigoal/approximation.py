@@ -1,19 +1,13 @@
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-from pmp.multigoal.helpers import get_distribution_name
+from pmp.multigoal.helpers import get_distribution_name, read_scores
 
 
 def calculate_approx(experiment, methods, reps):
     file_prefix = experiment.filename
     out_dir = experiment.get_generated_dir_path()
     n_rules = experiment.n_rules()
-
-    def read_scores(file_path):
-        with open(file_path, 'r') as f:
-            scores = f.read().strip().split()
-            scores = np.array(scores).astype('float')
-        return scores
 
     def get_winner_scores(method, rep):
         score_file_name = '{}_{}_{}.score'.format(file_prefix, method, rep)

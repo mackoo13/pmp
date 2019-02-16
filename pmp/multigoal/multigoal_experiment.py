@@ -1,10 +1,8 @@
 from random import seed
-
 from cplex.exceptions import CplexSolverError
-
 from pmp.experiments.experiment import preference_orders
 from pmp.experiments.helpers import Command
-from pmp.preferences import Profile
+from pmp.multigoal.helpers import get_profile
 from pmp.rules import MultigoalCCBorda
 from pmp.experiments import Experiment, multigoal_save_to_file, multigoal_save_scores, FileType, helpers, impartial
 from pmp.rules.utils import get_best_score
@@ -13,13 +11,14 @@ import os
 
 
 class MultigoalExperiment(Experiment):
-    def __init__(self, conf=None):
+    def __init__(self, conf=None, dir_name='results'):
         Experiment.__init__(self, conf)
         self.rule = MultigoalCCBorda
         self.rule_instance = None
         self.thresholds = None
         self.percent_thresholds = None
         self.filename = None
+        self.dir_name = dir_name
         self.__config = conf
         self.__generated_dir_path = "generated"
 
@@ -39,10 +38,6 @@ class MultigoalExperiment(Experiment):
             self.rule.__name__, self.__config.distribution_name, thresholds_str,
             self.k, len(voters), len(candidates))
 
-    def get_profile(self, candidates, preferences):
-        candidates_list = list(range(len(candidates)))
-        return Profile(candidates_list, preferences)
-
     def set_election(self, rule, k):
         raise Exception('In MultigoalExperiment')
 
@@ -52,7 +47,7 @@ class MultigoalExperiment(Experiment):
         self.thresholds = thresholds
         self.percent_thresholds = percent_thresholds
         self.refresh_filename()
-        self.set_generated_dir_path(os.path.join('results', self.filename))
+        self.set_generated_dir_path(os.path.join(self.dir_name, self.filename))
 
     def n_rules(self):
         if self.percent_thresholds is not None:
@@ -60,7 +55,7 @@ class MultigoalExperiment(Experiment):
         if self.thresholds is not None:
             return len(self.thresholds)
 
-    def run(self, visualization=False, n=1, methods=None,
+    def run(self, visualization=False, n=1, n_start=1, cplex_trials=1, methods=None,
             save_win=True, save_in=True, save_out=True, save_best=True, save_score=True):
         dir_path = self.get_generated_dir_path()
         if methods is None:
@@ -73,9 +68,10 @@ class MultigoalExperiment(Experiment):
                 raise e
 
         i = 1
+        cplex_failures = 0
         while i <= n * len(methods):
 
-            i_per_method = (i-1) / len(methods) + 1
+            i_per_method = (i-1) / len(methods) + n_start
             candidates, voters, preferences = self.__execute_commands()
             if save_in:
                 multigoal_save_to_file(self, FileType.IN_FILE, i_per_method, candidates, voters)
@@ -90,7 +86,7 @@ class MultigoalExperiment(Experiment):
                     i += 1
                     continue
 
-                profile = self.get_profile(candidates, preferences)
+                profile = get_profile(candidates, preferences)
                 best_scores = self.compute_best_scores(profile)
 
                 if self.percent_thresholds is not None:
@@ -103,9 +99,15 @@ class MultigoalExperiment(Experiment):
                 try:
                     winners = list(self.__run_election(candidates, preferences, method=method))
                     i += 1
-                except CplexSolverError:
-                    print('No solution found by Cplex: retry')
-                    continue
+                    cplex_failures = 0
+                except CplexSolverError as e:
+                    if cplex_failures < cplex_trials:
+                        print('No solution found by Cplex: retry')
+                        cplex_failures += 1
+                        continue
+                    else:
+                        print('No solution found by Cplex: trials limit exceeded')
+                        raise e
 
                 if save_win:
                     multigoal_save_to_file(
@@ -141,7 +143,7 @@ class MultigoalExperiment(Experiment):
     def __run_election(self, candidates, preferences, method='ILP'):
         seed()
 
-        profile = self.get_profile(candidates, preferences)
+        profile = get_profile(candidates, preferences)
         if self.k > len(candidates):
             print("k is too big. Not enough candidates to find k winners.")
             return
