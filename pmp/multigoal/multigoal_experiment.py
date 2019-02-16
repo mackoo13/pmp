@@ -4,7 +4,8 @@ from pmp.experiments.experiment import preference_orders
 from pmp.experiments.helpers import Command
 from pmp.multigoal.helpers import get_profile
 from pmp.rules import MultigoalCCBorda
-from pmp.experiments import Experiment, multigoal_save_to_file, multigoal_save_scores, FileType, helpers, impartial
+from pmp.experiments import Experiment, multigoal_save_to_file, multigoal_save_scores, FileType, helpers, impartial, \
+    urn, mallows
 from pmp.rules.utils import get_best_score
 import numpy as np
 import os
@@ -133,6 +134,10 @@ class MultigoalExperiment(Experiment):
                 _, voters, preferences = experiment_command[1](candidates)
             elif command_type == Command.IMPARTIAL:
                 candidates, voters, preferences = impartial(*args)
+            elif command_type == Command.URN:
+                candidates, voters, preferences = urn(*args)
+            elif command_type == Command.MALLOWS:
+                candidates, voters, preferences = mallows(*args)
         if not preferences:
             preferences = preference_orders(candidates, voters)
         if any(isinstance(candidate, int) or len(candidate) != 3 for candidate in candidates):

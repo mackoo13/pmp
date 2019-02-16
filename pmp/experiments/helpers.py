@@ -7,6 +7,8 @@ class Command(Enum):
     GEN_VOTERS = 2
     GEN_FROM_CANDIDATES = 3
     IMPARTIAL = 4
+    URN = 5
+    MALLOWS = 6
 
 
 def make_dirs(dir_path, exist_ok=False):

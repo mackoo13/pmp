@@ -31,6 +31,12 @@ def init_from_input(commands, generated_dir_path):
         if command == "impartial":
             experiment.two_dimensional = False
             config.impartial(int(command[1]), int(command[2]))
+        elif command == "urn":
+            experiment.two_dimensional = False
+            config.urn(int(command[1]), int(command[2]))
+        elif command == "mallows":
+            experiment.two_dimensional = False
+            config.mallows(float(command[1]), int(command[2]), int(command[3]))
         elif command[0] == "#":
             pass
         elif command in ['voters', 'candidates']:

@@ -6,8 +6,10 @@ def get_distribution_name(distribution):
     if distribution.__name__ == 'generate_uniform':
         return 'square'
     elif distribution.__name__ == 'generate_circle':
-        return'circle'
-    return 'gauss'
+        return 'circle'
+    elif distribution.__name__ == 'generate_gauss':
+        return 'gauss'
+    return distribution.__name__
 
 
 def get_profile(candidates, preferences):
