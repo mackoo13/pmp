@@ -1,5 +1,7 @@
 import os
 import re
+from collections import defaultdict
+
 import matplotlib.pyplot as plt
 import numpy as np
 from cplex.exceptions import CplexSolverError
@@ -23,6 +25,15 @@ def plot(filename, x, y, mins, rules, title=""):
 
     plt.savefig(filename)
     plt.clf()
+
+
+def plot2(x, y, rule):
+    axes = plt.gca()
+    axes.set_xlim([0, 1])
+    plt.xlabel(rule)
+    axes.set_ylim([0, 1])
+    plt.ylabel('approximation ratio')
+    plt.plot(x, y)
 
 
 def get_multigoal_rules(multigoal_rule):
@@ -120,3 +131,58 @@ def generate_winner_files_for_pareto(dir_name, configs, multigoal_rule, k, start
                     best_filename = '{}_{}.best'.format(experiment.filename, n_start + repetition + 1)
                     os.remove(os.path.join(dir_name, experiment.filename, best_filename))
                     continue
+
+
+def draw_pareto_chart_from_winner_files_one_vs_all(rule_name, start, step, m, n, k, distribution):
+    distribution_name = get_distribution_name(distribution)
+
+    r2_names = []
+    for result_dir_name in os.listdir('.'):
+        result_dir_pattern = r'results_{}_{}_(\w+)_k{}_n{}_m{}'.format(start, step, k, n, m)
+        if rule_name in result_dir_name and re.match(result_dir_pattern, result_dir_name):
+            xy = defaultdict(lambda: [])
+            r2_name = result_dir_name.split('_')[3]
+            reverse = r2_name.startswith('Multigoal' + rule_name)
+
+            r2_name = r2_name.replace('Multigoal', '')
+            r2_name = r2_name.replace(rule_name, '')
+            r2_names.append(r2_name)
+
+            for dir_name in os.listdir(result_dir_name):
+                dir_pattern = r'\w+_{}_(\d+)_(\d+)_k{}_n{}_m{}'.format(distribution_name, k, n, m)
+                r1_r2_match = re.match(dir_pattern, dir_name)
+                if r1_r2_match is None:
+                    continue
+
+                r1 = r1_r2_match.group(1)
+
+                for filename in os.listdir(os.path.join(result_dir_name, dir_name)):
+                    rep = get_repetition_from_filename(dir_name, filename)
+                    if not rep:
+                        continue
+
+                    win_filename = os.path.join(result_dir_name, dir_name, filename)
+                    best_filename = '{}_{}.best'.format(dir_name, rep)
+                    best_filename = os.path.join(result_dir_name, dir_name, best_filename)
+                    scores = read_scores(win_filename)
+                    best = read_scores(best_filename)
+
+                    approx = scores[1] / best[1]
+                    xy[r1].append(approx)
+
+            xy_list = list(xy.items())
+            xy_list = sorted(xy_list, key=lambda e: int(e[0]))
+            x = [float(x) / 100 for x, _ in xy_list]
+            y_min = [np.min(ys) for _, ys in xy_list]
+
+            if reverse:
+                plot2(y_min, x, rule_name)
+            else:
+                plot2(x, y_min, rule_name)
+
+    title = "voters: {}, candidates: {}, committee size: {}".format(n, m, k)
+    filename = '{}_{}_k{}_n{}_m{}'.format(rule_name, distribution_name, k, n, m)
+    plt.title(title)
+    plt.legend(r2_names)
+    plt.savefig(filename)
+    plt.clf()

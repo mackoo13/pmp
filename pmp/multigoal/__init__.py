@@ -1,3 +1,3 @@
 from .multigoal_experiment import MultigoalExperiment
 from .multigoal_experiment_config import MultigoalExperimentConfig
-from .pareto import generate_winner_files_for_pareto, draw_pareto_chart_from_winner_files
+from .pareto import generate_winner_files_for_pareto, draw_pareto_chart_from_winner_files, draw_pareto_chart_from_winner_files_one_vs_all
