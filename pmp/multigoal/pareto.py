@@ -122,7 +122,7 @@ def generate_winner_files_for_pareto(dir_name, configs, multigoal_rule, k, start
 
                 try:
                     experiment.run(n=1, n_start=n_start + repetition + 1,
-                                   save_in=False, save_out=False, save_win=True, save_best=True, save_score=True)
+                                   save_in=False, save_out=False, save_win=False, save_best=True, save_score=True)
                     break
                 except CplexSolverError:
                     best_filename = '{}_{}.best'.format(experiment.filename, n_start + repetition + 1)
