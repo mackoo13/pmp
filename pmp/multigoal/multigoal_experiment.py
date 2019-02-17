@@ -56,7 +56,7 @@ class MultigoalExperiment(Experiment):
         if self.thresholds is not None:
             return len(self.thresholds)
 
-    def run(self, visualization=False, n=1, n_start=1, cplex_trials=1, methods=None,
+    def run(self, visualization=False, n=1, n_start=1, cplex_trials=1, methods=None, k_cc=None,
             save_win=True, save_in=True, save_out=True, save_best=True, save_score=True):
         dir_path = self.get_generated_dir_path()
         if methods is None:
@@ -81,8 +81,12 @@ class MultigoalExperiment(Experiment):
 
             for method in methods:
                 filename = self.filename
-                filename = '{}_{}_{}.win'.format(filename, method, i_per_method)
-                if os.path.isfile(os.path.join(dir_path, filename)):
+                score_filename = '{}_{}_{}.score'.format(filename, method, i_per_method)
+                score_filename = os.path.join(dir_path, score_filename)
+                win_filename = '{}_{}_{}.win'.format(filename, method, i_per_method)
+                win_filename = os.path.join(dir_path, win_filename)
+
+                if os.path.isfile(score_filename) or os.path.isfile(win_filename):
                     print('Skipping: {} (already generated)'.format(filename))
                     i += 1
                     continue
@@ -98,7 +102,7 @@ class MultigoalExperiment(Experiment):
                     multigoal_save_scores(self, FileType.BEST_FILE, i_per_method, best_scores)
 
                 try:
-                    winners = list(self.__run_election(candidates, preferences, method=method))
+                    winners = list(self.__run_election(candidates, preferences, method=method, k_cc=k_cc))
                     i += 1
                     cplex_failures = 0
                 except CplexSolverError as e:
@@ -145,7 +149,7 @@ class MultigoalExperiment(Experiment):
         return candidates, voters, preferences
 
     # run election, compute winners
-    def __run_election(self, candidates, preferences, method='ILP'):
+    def __run_election(self, candidates, preferences, method='ILP', k_cc=None):
         seed()
 
         profile = get_profile(candidates, preferences)
@@ -153,4 +157,4 @@ class MultigoalExperiment(Experiment):
             print("k is too big. Not enough candidates to find k winners.")
             return
 
-        return self.rule(self.thresholds).find_committee(self.k, profile, method=method)
+        return self.rule(self.thresholds).find_committee(self.k, profile, method=method, k_cc=k_cc)
