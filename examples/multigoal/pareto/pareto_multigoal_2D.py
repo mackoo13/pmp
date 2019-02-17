@@ -1,10 +1,10 @@
 import os
 from pmp.experiments import generate_uniform
 from pmp.multigoal import MultigoalExperimentConfig, generate_winner_files_for_pareto, \
-    draw_pareto_chart_from_winner_files, draw_pareto_chart_from_winner_files_one_vs_all
+    draw_pareto_chart_from_winner_files, draw_pareto_chart_from_winner_files_one_vs_all, \
+    draw_pareto_chart_from_winner_files_dots
 from pmp.multigoal.helpers import get_distribution_name
-from pmp.rules import MultigoalCCBorda
-
+from pmp.rules import MultigoalCCBorda, MultigoalBlocBorda
 
 current_file = os.path.abspath(__file__)
 current_dir = os.path.dirname(current_file)
@@ -33,4 +33,5 @@ for _ in range(repetitions):
 generate_winner_files_for_pareto(dir_name, configs, multigoal_rule, k, start=start, step=step)
 draw_pareto_chart_from_winner_files(dir_name, m, n, k, multigoal_rule, distribution)
 draw_pareto_chart_from_winner_files_one_vs_all('Borda', 90, 2, m, n, k, distribution)
+draw_pareto_chart_from_winner_files_dots(dir_name, m, n, k, multigoal_rule, distribution)
 

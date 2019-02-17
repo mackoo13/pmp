@@ -27,13 +27,25 @@ def plot(filename, x, y, mins, rules, title=""):
     plt.clf()
 
 
-def plot2(x, y, rule):
+def plot_single(x, y, rule):
     axes = plt.gca()
     axes.set_xlim([0, 1])
     plt.xlabel(rule)
     axes.set_ylim([0, 1])
     plt.ylabel('approximation ratio')
     plt.plot(x, y)
+
+
+def plot_dots(filename, x, y, rules, title=""):
+    rule1_name = rules[0].__str__()
+    rule2_name = rules[1].__str__()
+
+    plt.xlabel(rule2_name)
+    plt.ylabel(rule1_name)
+    plt.scatter(x, y, s=3)
+    plt.title(title)
+    plt.savefig(filename)
+    plt.clf()
 
 
 def get_multigoal_rules(multigoal_rule):
@@ -176,9 +188,9 @@ def draw_pareto_chart_from_winner_files_one_vs_all(rule_name, start, step, m, n,
             y_min = [np.min(ys) for _, ys in xy_list]
 
             if reverse:
-                plot2(y_min, x, rule_name)
+                plot_single(y_min, x, rule_name)
             else:
-                plot2(x, y_min, rule_name)
+                plot_single(x, y_min, rule_name)
 
     title = "voters: {}, candidates: {}, committee size: {}".format(n, m, k)
     filename = '{}_{}_k{}_n{}_m{}'.format(rule_name, distribution_name, k, n, m)
@@ -186,3 +198,63 @@ def draw_pareto_chart_from_winner_files_one_vs_all(rule_name, start, step, m, n,
     plt.legend(r2_names)
     plt.savefig(filename)
     plt.clf()
+
+
+def compute_rule_max(rule_name, n, m, k):
+    if rule_name == 'SNTV':
+        return n
+    if rule_name == 'Bloc':
+        return k * n
+    if rule_name == 'Chamberlin-Courant':
+        return (m - 1) * n
+    if rule_name == 'k-Borda':
+        return k * (m - 1) * n
+    return 0
+
+
+def draw_pareto_chart_from_winner_files_dots(current_dir, m, n, k, multigoal_rule, distribution):
+    print("{}, k={}".format(multigoal_rule.__name__, k))
+    rule_name = multigoal_rule.__name__
+    distribution_name = get_distribution_name(distribution)
+    rules = get_multigoal_rules(multigoal_rule)
+
+    rule_1_max = compute_rule_max(str(rules[0]), n, m, k)
+    rule_2_max = compute_rule_max(str(rules[1]), n, m, k)
+
+    if not rules:
+        return
+
+    x = []
+    y = []
+
+    for dir_name in os.listdir(current_dir):
+        dir_pattern = r'{}_{}_(\d+)_(\d+)_k{}_n{}_m{}'.format(rule_name, distribution_name, k, n, m)
+        r1_r2_match = re.match(dir_pattern, dir_name)
+        if r1_r2_match is None:
+            continue
+
+        for filename in os.listdir(os.path.join(current_dir, dir_name)):
+            rep = get_repetition_from_filename(dir_name, filename)
+            if not rep:
+                continue
+
+            win_filename = os.path.join(current_dir, dir_name, filename)
+            best_filename = '{}_{}.best'.format(dir_name, rep)
+            best_filename = os.path.join(current_dir, dir_name, best_filename)
+
+            scores = read_scores(win_filename)
+            best = read_scores(best_filename)
+
+            best_mis_score_1 = rule_1_max - best[0]
+            best_mis_score_2 = rule_2_max - best[1]
+
+            mis_score_1 = rule_1_max - scores[0]
+            mis_score_2 = rule_2_max - scores[1]
+
+            x.append(mis_score_2 / best_mis_score_2)
+            y.append(mis_score_1 / best_mis_score_1)
+
+    filename = '{}_{}_k{}_n{}_m{}_dots'.format(rule_name, distribution_name, k, n, m)
+    title = "voters: {}, candidates: {}, committee size: {}".format(n, m, k)
+    plot_dots(filename, x, y, rules, title=title)
+
