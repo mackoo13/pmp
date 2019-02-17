@@ -51,7 +51,7 @@ def count_already_generated(current_dir):
     return max_rep
 
 
-def draw_pareto_chart_from_winner_files(current_dir, m, n, k, multigoal_rule, distribution):
+def draw_pareto_chart_from_winner_files(current_dir, m, n, k, multigoal_rule, distribution, distribution_params=None):
     print("{}, k={}".format(multigoal_rule.__name__, k))
     # We assume that there are "repetitions" files generated for each threshold.
     rule_name = multigoal_rule.__name__
@@ -93,7 +93,13 @@ def draw_pareto_chart_from_winner_files(current_dir, m, n, k, multigoal_rule, di
     y_mean = [np.mean(ys) for _, ys in xy_list]
     y_min = [np.min(ys) for _, ys in xy_list]
 
-    filename = '{}_{}_k{}_n{}_m{}'.format(rule_name, distribution_name, k, n, m)
+    if distribution_params is None:
+        filename = '{}_{}_k{}_n{}_m{}'.format(rule_name, distribution_name, k, n, m)
+    else:
+        distribution_params_string = '_'.join([dpk + str(dpv) for dpk, dpv in distribution_params.items()])
+        distribution_params_string = distribution_params_string.replace('.', '')
+        filename = '{}_{}_{}_k{}_n{}_m{}'.format(rule_name, distribution_name, distribution_params_string, k, n, m)
+
     title = "voters: {}, candidates: {}, committee size: {}".format(n, m, k)
     plot(filename, x, y_mean, y_min, rules, title=title)
 
