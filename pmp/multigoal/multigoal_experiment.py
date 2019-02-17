@@ -114,10 +114,12 @@ class MultigoalExperiment(Experiment):
                 if save_win:
                     multigoal_save_to_file(
                         self, FileType.WIN_FILE, i_per_method, candidates, voters, preferences, winners, method=method)
-                    print('Generated: {} ({})'.format(method, i_per_method))
+
                 if save_score:
                     score = self.rule([0] * n_thresholds).committee_score(winners, profile)
                     multigoal_save_scores(self, FileType.SCORE_FILE, i_per_method, score, method=method)
+
+                print('Generated: {} ({})'.format(method, i_per_method))
 
     def __execute_commands(self):
         candidates = self.__config.get_candidates()
