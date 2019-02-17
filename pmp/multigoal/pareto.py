@@ -121,7 +121,6 @@ def generate_winner_files_for_pareto(dir_name, configs, multigoal_rule, k, start
                 experiment.set_multigoal_election(multigoal_rule, k, percent_thresholds=(r1, r2))
 
                 try:
-                    print(r1, r2)
                     experiment.run(n=1, n_start=n_start + repetition + 1,
                                    save_in=False, save_out=False, save_win=False, save_best=True, save_score=True)
                     current_mins[i] = r2
