@@ -9,19 +9,18 @@ from pmp.multigoal import MultigoalExperiment
 from pmp.multigoal.helpers import get_distribution_name, read_scores
 
 
-def plot(filename, x, y, mins, rules, title=""):
+def plot(filename, x, mins, rules, title=""):
     rule1_name = rules[0].__str__()
     rule2_name = rules[1].__str__()
 
     axes = plt.gca()
-    axes.set_xlim([0, 100])
+    axes.set_xlim([0, 1])
     plt.xlabel(rule2_name)
-    axes.set_ylim([0, y[0]])
+    axes.set_ylim([0, 1])
     plt.ylabel(rule1_name)
-    plt.plot(x, y)
-    plt.plot(x, mins)
+    plt.plot(np.array(x).astype('float')/100, mins)
     plt.title(title)
-    plt.legend(['avg', 'min'])
+    plt.legend(['min'])
 
     plt.savefig(filename)
     plt.clf()
@@ -90,7 +89,6 @@ def draw_pareto_chart_from_winner_files(current_dir, m, n, k, multigoal_rule, di
     xy_list = list(xy.items())
     xy_list = sorted(xy_list, key=lambda e: int(e[0]))
     x = [int(x) for x, _ in xy_list]
-    y_mean = [np.mean(ys) for _, ys in xy_list]
     y_min = [np.min(ys) for _, ys in xy_list]
 
     if distribution_params is None:
@@ -101,7 +99,7 @@ def draw_pareto_chart_from_winner_files(current_dir, m, n, k, multigoal_rule, di
         filename = '{}_{}_{}_k{}_n{}_m{}'.format(rule_name, distribution_name, distribution_params_string, k, n, m)
 
     title = "voters: {}, candidates: {}, committee size: {}".format(n, m, k)
-    plot(filename, x, y_mean, y_min, rules, title=title)
+    plot(filename, x, y_min, rules, title=title)
 
 
 def generate_winner_files_for_pareto(dir_name, configs, multigoal_rule, k, start=70, step=2):
@@ -113,16 +111,20 @@ def generate_winner_files_for_pareto(dir_name, configs, multigoal_rule, k, start
 
     x = np.array([a for a in range(start, 101, step)])
 
+    current_mins = [100] * len(x)
+
     for repetition, config in enumerate(configs[n_start:]):
         experiment = MultigoalExperiment(config, dir_name=dir_name)
 
         for i, r1 in enumerate(x):
-            for r2 in range(100, 0, -step):
+            for r2 in range(current_mins[i], 0, -step):
                 experiment.set_multigoal_election(multigoal_rule, k, percent_thresholds=(r1, r2))
 
                 try:
+                    print(r1, r2)
                     experiment.run(n=1, n_start=n_start + repetition + 1,
                                    save_in=False, save_out=False, save_win=False, save_best=True, save_score=True)
+                    current_mins[i] = r2
                     break
                 except CplexSolverError:
                     best_filename = '{}_{}.best'.format(experiment.filename, n_start + repetition + 1)
