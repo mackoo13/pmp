@@ -70,13 +70,14 @@ def calculate_approx_ccborda_ratio(out_dir, file_prefixes, methods, reps):
                 approx_score = get_winner_scores(out_dir, file_prefix, method, rep)
                 res[mi, fi, :, rep-1] = approx_score / optimal_scores
 
-    res = np.mean(res, axis=3)
     return res
 
 
-def draw_approx_ccborda_ratio(out_dir, res, methods, k_ccs):
+def draw_approx_ccborda_ratio(res, methods, k_ccs):
+    res = np.mean(res, axis=3)
+
     for mi, method in enumerate(methods):
-        filename = os.path.join(out_dir, 'approx_{}'.format(method))
+        filename = 'approx_{}'.format(method)
 
         axes = plt.gca()
         axes.set_ylim([0, 1.1])
@@ -86,6 +87,27 @@ def draw_approx_ccborda_ratio(out_dir, res, methods, k_ccs):
         plt.plot(k_ccs, res[mi, :, 0])
         plt.plot(k_ccs, res[mi, :, 1])
         plt.legend(['CC', 'kB'])
+        plt.title('Approximation in CC+kB ({})'.format(method))
+        plt.savefig(filename)
+        plt.clf()
+
+
+def draw_approx_ccborda_pareto(res, methods, k_ccs):
+    res = np.min(res, axis=3)
+    k_ccs = ['   k_CC={}'.format(kcc) for kcc in k_ccs]
+
+    for mi, method in enumerate(methods):
+        filename = 'approx_pareto_{}'.format(method)
+
+        # axes = plt.gca()
+        # axes.set_xlim([0, 1.1])
+        # axes.set_ylim([0, 1.1])
+        plt.xlabel('CC')
+        plt.ylabel('k-Borda')
+
+        plt.plot(res[mi, :, 0], res[mi, :, 1], '.-')
+        for ki, k_cc in enumerate(k_ccs):
+            plt.annotate(k_cc, (res[mi, ki, 0], res[mi, ki, 1]), fontsize='xx-small')
         plt.title('Approximation in CC+kB ({})'.format(method))
         plt.savefig(filename)
         plt.clf()

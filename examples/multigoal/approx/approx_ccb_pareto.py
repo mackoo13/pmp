@@ -1,6 +1,7 @@
 from pmp.experiments import generate_uniform
 from pmp.multigoal import MultigoalExperimentConfig, MultigoalExperiment
-from pmp.multigoal.approximation import calculate_approx_ccborda_ratio, draw_approx_ccborda_ratio
+from pmp.multigoal.approximation import calculate_approx_ccborda_ratio, draw_approx_ccborda_ratio, \
+    draw_approx_ccborda_pareto
 from pmp.multigoal.helpers import get_distribution_name
 from pmp.rules import MultigoalCCBorda
 import os
@@ -13,7 +14,7 @@ k = 10   # committee_size
 m = 100   # candidates number
 n = 100   # voters number
 
-repetitions = 30
+repetitions = 60
 k_ccs = range(0, k+1)
 
 methods = ['Approx_P', 'Approx_Greedy']
@@ -41,4 +42,5 @@ for repetition, experiment in enumerate(experiments):
 out_dir = experiments[0].get_generated_dir_path()
 file_prefixes = ['kcc' + str(k_cc) for k_cc in k_ccs]
 res = calculate_approx_ccborda_ratio(out_dir, file_prefixes, methods, repetitions)
-draw_approx_ccborda_ratio(out_dir, res, methods, k_ccs)
+draw_approx_ccborda_ratio(res, methods, k_ccs)
+draw_approx_ccborda_pareto(res, methods, k_ccs)
