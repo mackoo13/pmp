@@ -7,6 +7,12 @@ from pmp.multigoal import MultigoalExperiment
 from pmp.multigoal.helpers import get_distribution_name, read_scores
 
 
+def save_dat(filename, x, y):
+    with open(filename, 'w') as f:
+        for xi, yi in zip(x, y):
+            f.write('{} {}'.format(float(xi)/100, yi) + '\n')
+
+
 def plot(filename, x, y, mins, rules, title=""):
     rule1_name = rules[0].__str__()
     rule2_name = rules[1].__str__()
@@ -94,6 +100,9 @@ def draw_pareto_chart_from_winner_files(current_dir, m, n, k, multigoal_rule, di
     filename = '{}_{}_k{}_n{}_m{}'.format(rule_name, distribution_name, k, n, m)
     title = "voters: {}, candidates: {}, committee size: {}".format(n, m, k)
     plot(filename, x, y_mean, y_min, rules, title=title)
+
+    save_dat(filename + '_mean.dat', x, y_mean)
+    save_dat(filename + '_min.dat', x, y_min)
 
 
 def generate_winner_files_for_pareto(dir_name, configs, multigoal_rule, k, start=70, step=2):

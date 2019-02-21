@@ -157,4 +157,7 @@ class MultigoalExperiment(Experiment):
             print("k is too big. Not enough candidates to find k winners.")
             return
 
-        return self.rule(self.thresholds).find_committee(self.k, profile, method=method, k_cc=k_cc)
+        if k_cc is not None:
+            return self.rule(self.thresholds).find_committee(self.k, profile, method=method, k_cc=k_cc)
+        else:
+            return self.rule(self.thresholds).find_committee(self.k, profile, method=method)
