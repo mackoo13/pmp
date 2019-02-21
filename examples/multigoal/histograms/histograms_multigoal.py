@@ -5,9 +5,9 @@ from pmp.multigoal.visualize import draw_histogram, visualize_elections
 from pmp.rules import MultigoalCCBorda
 
 # Configuration
-m = 200   # candidates number
-n = 200   # voters number
-k = 20   # committee_size
+m = 100   # candidates number
+n = 100   # voters number
+k = 10   # committee_size
 repetitions = 33
 multigoal_rule = MultigoalCCBorda
 percentages = [90, 90]

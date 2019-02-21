@@ -1,4 +1,5 @@
 import os
+import numpy as np
 from random import random, gauss, shuffle
 
 from ..preferences import Ordinal
@@ -60,6 +61,55 @@ def generate_circle(x, y, r, n, party):
             l += [(px + x, py + y, party)]
             count += 1
     return l
+
+
+def urn(a, m, n):
+    # Polya-Eggenberger model
+
+    candidates = list(range(m))
+    voters = []
+    preferences = []
+    options = [None]
+    p = [1]
+
+    for i in range(n):
+        perm_id = np.random.choice(options, p=np.array(p)/float(sum(p)))
+        if perm_id is None:         # random permutation with uniform distribution
+            perm = list(range(m))
+            shuffle(perm)
+            perm = Ordinal(perm)
+        else:                       # repeat an order that we have generated before
+            perm = preferences[perm_id]
+
+        options.append(i)
+        p.append(a)
+        preferences.append(perm)
+
+    return candidates, voters, preferences
+
+
+def mallows(phi, m, n):
+    # RIM sampling, as described in:
+    # "Effective Sampling and Learning for Mallows Models with Pairwise-Preference Data" (Lu, Boutilier)
+
+    candidates = list(range(m))
+    voters = []
+    preferences = []
+    sigma = range(m)
+
+    for _ in range(n):
+        p = [1]
+        v = []
+
+        for i, cand in enumerate(sigma):
+            pos = np.random.choice(range(i+1), p=np.array(p)/float(sum(p)))
+            p.insert(0, p[0] * phi)
+            v.insert(pos, cand)
+
+        voters.append(v)
+        preferences.append(Ordinal(v))
+
+    return candidates, voters, preferences
 
 
 def impartial(m, n):

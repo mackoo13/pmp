@@ -1,5 +1,7 @@
 import os
 import re
+from collections import defaultdict
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -23,6 +25,28 @@ def plot(filename, x, y, mins, rules, title=""):
     plt.title(title)
     plt.legend(['avg', 'min'])
 
+    plt.savefig(filename)
+    plt.clf()
+
+
+def plot_single(x, y, rule):
+    axes = plt.gca()
+    axes.set_xlim([0, 1])
+    plt.xlabel(rule)
+    axes.set_ylim([0, 1])
+    plt.ylabel('approximation ratio')
+    plt.plot(x, y)
+
+
+def plot_dots(filename, x, y, rules, title=""):
+    rule1_name = rules[0].__str__()
+    rule2_name = rules[1].__str__()
+
+    plt.xlabel(rule2_name)
+    plt.ylabel(rule1_name)
+    plt.plot(x, y)
+    plt.title(title)
+    plt.legend(['max'])
     plt.savefig(filename)
     plt.clf()
 
@@ -82,6 +106,7 @@ def draw_pareto_chart_from_winner_files(current_dir, m, n, k, multigoal_rule, di
             best = read_scores(best_filename)
 
             approx = scores[1] / best[1]
+            approx2 = scores[0] / best[0] * 100
             if r1 in xy:
                 xy[r1].append(approx)
             else:
@@ -122,3 +147,136 @@ def generate_winner_files_for_pareto(dir_name, configs, multigoal_rule, k, start
                     best_filename = '{}_{}.best'.format(experiment.filename, n_start + repetition + 1)
                     os.remove(os.path.join(dir_name, experiment.filename, best_filename))
                     continue
+
+
+def draw_pareto_chart_from_winner_files_one_vs_all(rule_name, start, step, m, n, k, distribution):
+    distribution_name = get_distribution_name(distribution)
+
+    r2_names = []
+    for result_dir_name in os.listdir('.'):
+        print(result_dir_name)
+        result_dir_pattern = r'results_{}_{}_(\w+)_k{}_n{}_m{}'.format(start, step, k, n, m)
+        if rule_name in result_dir_name and re.match(result_dir_pattern, result_dir_name):
+            xy = defaultdict(lambda: [])
+            r2_name = result_dir_name.split('_')[3]
+            reverse = r2_name.startswith('Multigoal' + rule_name)
+            # print(r2_name)
+            if r2_name.startswith('Multigoal' + rule_name):
+                continue
+            r2_name = r2_name.replace('Multigoal', '')
+            r2_name = r2_name.replace(rule_name, '')
+            r2_names.append(r2_name)
+            print(r2_name)
+
+            for dir_name in os.listdir(result_dir_name):
+                dir_pattern = r'\w+_{}_(\d+)_(\d+)_k{}_n{}_m{}'.format(distribution_name, k, n, m)
+                r1_r2_match = re.match(dir_pattern, dir_name)
+                if r1_r2_match is None:
+                    continue
+
+                r1 = r1_r2_match.group(1)
+
+                for filename in os.listdir(os.path.join(result_dir_name, dir_name)):
+                    rep = get_repetition_from_filename(dir_name, filename)
+                    if not rep:
+                        continue
+
+                    win_filename = os.path.join(result_dir_name, dir_name, filename)
+                    best_filename = '{}_{}.best'.format(dir_name, rep)
+                    best_filename = os.path.join(result_dir_name, dir_name, best_filename)
+                    scores = read_scores(win_filename)
+                    best = read_scores(best_filename)
+
+                    approx = scores[1] / best[1]
+                    xy[r1].append(approx)
+
+            xy_list = list(xy.items())
+            xy_list = sorted(xy_list, key=lambda e: int(e[0]))
+            x = [float(x) / 100 for x, _ in xy_list]
+            y_mean = [np.mean(ys) for _, ys in xy_list]
+
+            if reverse:
+                plot_single(y_mean, x, rule_name)
+            else:
+                plot_single(x, y_mean, rule_name)
+
+    print()
+    title = "voters: {}, candidates: {}, committee size: {}".format(n, m, k)
+    filename = '{}_{}_k{}_n{}_m{}'.format(rule_name, distribution_name, k, n, m)
+    plt.title(title)
+    plt.legend(r2_names, loc=3)
+    plt.savefig(filename)
+    plt.clf()
+
+
+def compute_rule_max(rule_name, n, m, k):
+    if rule_name == 'SNTV':
+        return n
+    if rule_name == 'Bloc':
+        return k * n
+    if rule_name == 'Chamberlin-Courant':
+        return (m - 1) * n
+    if rule_name == 'k-Borda':
+        return k * (m - 1) * n
+    return 0
+
+
+def draw_pareto_chart_from_winner_files_dots(current_dir, m, n, k, multigoal_rule, distribution):
+    print("{}, k={}".format(multigoal_rule.__name__, k))
+    rule_name = multigoal_rule.__name__
+    distribution_name = get_distribution_name(distribution)
+    rules = get_multigoal_rules(multigoal_rule)
+
+    rule_1_max = compute_rule_max(str(rules[0]), n, m, k)
+    rule_2_max = compute_rule_max(str(rules[1]), n, m, k)
+
+    if not rules:
+        return
+
+    x = []
+    y = []
+
+    for dir_name in os.listdir(current_dir):
+        dir_pattern = r'{}_{}_(\d+)_(\d+)_k{}_n{}_m{}'.format(rule_name, distribution_name, k, n, m)
+        r1_r2_match = re.match(dir_pattern, dir_name)
+        if r1_r2_match is None:
+            continue
+
+        for filename in os.listdir(os.path.join(current_dir, dir_name)):
+            rep = get_repetition_from_filename(dir_name, filename)
+            if not rep:
+                continue
+
+            win_filename = os.path.join(current_dir, dir_name, filename)
+            best_filename = '{}_{}.best'.format(dir_name, rep)
+            best_filename = os.path.join(current_dir, dir_name, best_filename)
+
+            scores = read_scores(win_filename)
+            best = read_scores(best_filename)
+
+            best_mis_score_1 = rule_1_max - best[0]
+            best_mis_score_2 = rule_2_max - best[1]
+
+            mis_score_1 = rule_1_max - scores[0]
+            mis_score_2 = rule_2_max - scores[1]
+
+            x.append(mis_score_2 / best_mis_score_2)
+            y.append(mis_score_1 / best_mis_score_1)
+
+    max_so_far = 0
+    new_x = []
+    new_y = []
+
+    for yval, xval in reversed(sorted(zip(y, x), key=lambda x: x[1])):
+        if yval > max_so_far:
+            new_x.append(xval)
+            new_y.append(yval)
+            max_so_far = yval
+
+
+    filename = '{}_{}_k{}_n{}_m{}_dots'.format(rule_name, distribution_name, k, n, m)
+    title = "voters: {}, candidates: {}, committee size: {}".format(n, m, k)
+    plot_dots(filename, new_x, new_y, rules, title=title)
+    print(new_x)
+    print(new_y)
+

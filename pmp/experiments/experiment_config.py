@@ -53,3 +53,9 @@ class ExperimentConfig:
     # candidates in impartial only as a list of consecutive integers starting from 0
     def impartial(self, m, n):
         self.__commands.append((Command.IMPARTIAL, (m, n)))
+
+    def urn(self, m, n):
+        self.__commands.append((Command.URN, (m, n)))
+
+    def mallows(self, phi, m, n):
+        self.__commands.append((Command.MALLOWS, (phi, m, n)))
