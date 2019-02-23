@@ -17,7 +17,7 @@ class MultigoalBlocSNTV(MultigoalRule):
                                log_errors=log_errors)
         self.weights = weights
 
-    def find_committee(self, k, profile, method=None, criterion='max_appr'):
+    def find_committee(self, k, profile, method=None, criterion='max_appr', k_cc=None):
         if method is None:
             committee = algorithm.registry.default(self, k, profile, criterion=criterion)
         else:
