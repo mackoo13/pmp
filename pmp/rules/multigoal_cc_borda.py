@@ -37,8 +37,9 @@ class MultigoalCCBorda(MultigoalRule):
 
     @algorithm('ILP', default=True)
     def _ilp_cc_kb(self, k, profile, criterion='max_appr'):
-        if criterion not in ('any', 'max_appr'):
-            raise ValueError('ILP method supports the following criteria: \'any\', \'max_appr\'')
+        criterion_options = ['any', 'max_appr'] + ['rule' + str(i+1) for i in range(len(self.rules))]
+        if criterion not in criterion_options:
+            raise ValueError('ILP method supports the following criteria: ' + ', '.join(criterion_options))
 
         self.rules[0].rule.initialise_weights(k, profile)
         self.rules[1].rule.initialise_weights(k, profile)
@@ -108,7 +109,7 @@ class MultigoalCCBorda(MultigoalRule):
         # Constraint6 - kBorda
         model.add_constraint(x, [profile.scores[i] for i in range(m)], Sense.gt, self.rules[1].s)
 
-        # Constraint7 - CC approximation estimation
+        # Constraint7 - kBorda approximation estimation
         if criterion == 'max_appr':
             model.add_constraint(x + ['a'],
                                  [profile.scores[i] / float(max_scores[1]) * resolution for i in range(m)] + [-1],
@@ -118,6 +119,12 @@ class MultigoalCCBorda(MultigoalRule):
         if criterion == 'max_appr':
             model.set_objective_sense(Objective.maximize)
             model.set_objective(['a'], [1])
+        elif criterion == 'rule1':
+            model.set_objective_sense(Objective.maximize)
+            model.set_objective(y, yij_weights)
+        elif criterion == 'rule2':
+            model.set_objective_sense(Objective.maximize)
+            model.set_objective(x, [profile.scores[i] for i in range(m)])
 
         # End of definition
 
