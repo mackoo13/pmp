@@ -9,7 +9,7 @@ from pmp.rules import MultigoalCCBorda, MultigoalBlocBorda, MultigoalBlocSNTV, M
 current_file = os.path.abspath(__file__)
 current_dir = os.path.dirname(current_file)
 
-repetitions = 9
+repetitions = 101
 k = 5
 n = 20
 m = 20
@@ -20,7 +20,7 @@ m = 20
 multigoal_rule = MultigoalBlocSNTV
 distribution = generate_uniform
 
-start = 90
+start = 50
 step = 2
 dir_name = 'results_{}_{}_{}_k{}_n{}_m{}'.format(start, step, multigoal_rule.__name__, k, n, m)
 

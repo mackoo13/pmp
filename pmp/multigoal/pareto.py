@@ -4,7 +4,6 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-from cplex.exceptions import CplexSolverError
 from pmp.multigoal import MultigoalExperiment
 from pmp.multigoal.helpers import get_distribution_name, read_scores
 
@@ -111,21 +110,11 @@ def generate_winner_files_for_pareto(dir_name, configs, multigoal_rule, k, start
 
     x = np.array([a for a in range(start, 101, step)])
 
-    current_mins = [100] * len(x)
-
     for repetition, config in enumerate(configs[n_start:]):
         experiment = MultigoalExperiment(config, dir_name=dir_name)
 
         for i, r1 in enumerate(x):
-            for r2 in range(current_mins[i], 0, -step):
-                experiment.set_multigoal_election(multigoal_rule, k, percent_thresholds=(r1, r2))
+            experiment.set_multigoal_election(multigoal_rule, k, percent_thresholds=(r1, 0))
 
-                try:
-                    experiment.run(n=1, n_start=n_start + repetition + 1,
-                                   save_in=False, save_out=False, save_win=False, save_best=True, save_score=True)
-                    current_mins[i] = r2
-                    break
-                except CplexSolverError:
-                    best_filename = '{}_{}.best'.format(experiment.filename, n_start + repetition + 1)
-                    os.remove(os.path.join(dir_name, experiment.filename, best_filename))
-                    continue
+            experiment.run(n=1, n_start=n_start + repetition + 1, criterion='rule2',
+                           save_in=False, save_out=False, save_win=False, save_best=True, save_score=True)
