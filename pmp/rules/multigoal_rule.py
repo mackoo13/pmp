@@ -18,7 +18,7 @@ class MultigoalRule:
     def __str__(self):
         return "MultigoalRule(" + ", ".join([rule.__str__() for rule in self.rules]) + ")"
 
-    def find_committee(self, k, profile, method=None, criterion='max_appr'):
+    def find_committee(self, k, profile, method=None, k_cc=None, criterion='max_appr'):
         if method is None:
             committee = algorithm.registry.default(self, k, profile, criterion=criterion)
         else:
