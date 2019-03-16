@@ -1,5 +1,6 @@
 from __future__ import division
-from scipy.special import lambertw
+
+from pmp.rules import Bloc
 from .._common import solve_methods_registry
 from itertools import chain, product
 import numpy as np
@@ -7,39 +8,37 @@ import numpy as np
 from .threshold_rule import ThresholdRule
 from .multigoal_rule import MultigoalRule
 from .chamberlin_courant import ChamberlinCourant
-from .borda import Borda
 from ..utils.ilp import *
 
 algorithm = solve_methods_registry()
 
 
-class MultigoalCCBorda(MultigoalRule):
+class MultigoalCCBloc(MultigoalRule):
 
     methods = algorithm.registry
 
     def __init__(self, (s1, s2)=(0, 0), weights=None, log_errors=True):
         MultigoalRule.__init__(self,
                                [ThresholdRule(ChamberlinCourant(), s1),
-                                ThresholdRule(Borda(), s2)],
+                                ThresholdRule(Bloc(), s2)],
                                log_errors=log_errors)
         self.weights = weights
 
     def find_committee(self, k, profile, method=None, k_cc=None, criterion='max_appr'):
         if method is None:
-            committee = algorithm.registry.default(self, k, profile, k_cc=k_cc, criterion=criterion)
+            committee = algorithm.registry.default(self, k, profile, criterion=criterion)
         else:
-            committee = algorithm.registry.all[method](self, k, profile, k_cc=k_cc, criterion=criterion)
+            committee = algorithm.registry.all[method](self, k, profile, criterion=criterion)
         return committee
 
     @algorithm('Bruteforce', 'Exponential.')
-    def _brute_cc_kb(self, k, profile, k_cc=None, criterion='max_appr'):
+    def _brute_cc_sntv(self, k, profile, criterion='max_appr'):
         return self._brute(k, profile, criterion=criterion)
 
     @algorithm('ILP', default=True)
-    def _ilp_cc_kb(self, k, profile, k_cc=None, criterion='max_appr'):
-        criterion_options = ['any', 'max_appr'] + ['rule' + str(i+1) for i in range(len(self.rules))]
-        if criterion not in criterion_options:
-            raise ValueError('ILP method supports the following criteria: ' + ', '.join(criterion_options))
+    def _ilp_cc_sntv(self, k, profile, criterion='max_appr'):
+        if criterion not in ('any', 'max_appr'):
+            raise ValueError('ILP method supports the following criteria: \'any\', \'max_appr\'')
 
         self.rules[0].rule.initialise_weights(k, profile)
         self.rules[1].rule.initialise_weights(k, profile)
@@ -106,10 +105,10 @@ class MultigoalCCBorda(MultigoalRule):
                                  list(yij_weights / float(max_scores[0]) * resolution) + [-1],
                                  Sense.gt, 0)
 
-        # Constraint6 - kBorda
+        # Constraint6 - SNTV
         model.add_constraint(x, [profile.scores[i] for i in range(m)], Sense.gt, self.rules[1].s)
 
-        # Constraint7 - kBorda approximation estimation
+        # Constraint7 - CC approximation estimation
         if criterion == 'max_appr':
             model.add_constraint(x + ['a'],
                                  [profile.scores[i] / float(max_scores[1]) * resolution for i in range(m)] + [-1],
@@ -119,12 +118,6 @@ class MultigoalCCBorda(MultigoalRule):
         if criterion == 'max_appr':
             model.set_objective_sense(Objective.maximize)
             model.set_objective(['a'], [1])
-        elif criterion == 'rule1':
-            model.set_objective_sense(Objective.maximize)
-            model.set_objective(y, yij_weights)
-        elif criterion == 'rule2':
-            model.set_objective_sense(Objective.maximize)
-            model.set_objective(x, [profile.scores[i] for i in range(m)])
 
         # End of definition
 
@@ -134,47 +127,3 @@ class MultigoalCCBorda(MultigoalRule):
         committee = (i for i in range(m) if abs(solution['x{}'.format(i)] - 1) <= 1e-05)
 
         return committee
-
-    @algorithm('Approx_Greedy')
-    def _greedy(self, k, profile, k_cc=None, criterion='max_appr'):
-        if k_cc is None:
-            l_cc = np.real(lambertw(1))
-            k_cc = int(np.ceil(l_cc * k))
-
-        # print('Greedy: selecting {} candidates with CC Greedy and {} candidates with Borda'.format(k_cc, k - k_cc))
-
-        committee = set(self.rules[0].rule.find_committee(k_cc, profile, method='Approx_Greedy'))
-
-        self.rules[1].rule.initialise_weights(k, profile)
-        self.rules[1].rule.compute_candidate_scores(k, profile)
-
-        for cand in sorted(profile.scores, key=lambda c: profile.scores.get(c), reverse=True):
-            committee.add(cand)
-            if len(committee) == k:
-                return committee
-
-    @algorithm('Approx_P')
-    def _p(self, k, profile, k_cc=None, criterion='max_appr'):
-        if k_cc is None:
-            x = int(np.math.ceil(profile.num_cand * np.real(lambertw(k)) / k))
-            A = 1 - (np.real(lambertw(k))) / k
-            M = 1 - (profile.num_cand - x) / (profile.num_cand - 1)
-            C = np.log(A) * k * (M - 1) * np.power(A, k * M)
-            l_cc = M - np.real(lambertw(C)) / (np.log(A) * k)
-            k_cc = int(np.ceil(l_cc * k))
-
-        # print('P: selecting {} candidates with CC Alg-P and {} candidates with Borda'.format(k_cc, k - k_cc))
-
-        committee = self.rules[0].rule.find_committee(k, profile, method='Approx_P')
-        committee = set(committee[:k_cc])
-
-        self.rules[1].rule.initialise_weights(k, profile)
-        self.rules[1].rule.compute_candidate_scores(k, profile)
-
-        if len(committee) == k:
-            return committee
-
-        for cand in sorted(profile.scores, key=lambda c: profile.scores.get(c), reverse=True):
-            committee.add(cand)
-            if len(committee) == k:
-                return committee

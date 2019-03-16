@@ -11,6 +11,9 @@ class SNTV(WeaklySeparable):
     def __str__(self):
         return "SNTV"
 
+    def initialise_weights(self, k, _profile):
+        self.weights = [1] + [0] * (k-1)
+
     def compute_score(self, candidate, k, profile):
         score = 0
         for pref in profile.preferences:

@@ -18,7 +18,7 @@ class MultigoalRule:
     def __str__(self):
         return "MultigoalRule(" + ", ".join([rule.__str__() for rule in self.rules]) + ")"
 
-    def find_committee(self, k, profile, method=None, criterion='max_appr'):
+    def find_committee(self, k, profile, method=None, k_cc=None, criterion='max_appr'):
         if method is None:
             committee = algorithm.registry.default(self, k, profile, criterion=criterion)
         else:
@@ -67,8 +67,11 @@ class MultigoalRule:
 
     @algorithm('ILP')
     def _ilp_weakly_separable(self, k, profile, criterion='max_appr'):
-        if criterion not in ('any', 'max_appr'):
-            raise ValueError('ILP method supports the following criteria: \'any\', \'max_appr\'')
+        criterion_options = ['any', 'max_appr'] + ['rule' + str(i+1) for i in range(len(self.rules))]
+        if criterion not in criterion_options:
+            raise ValueError('ILP method supports the following criteria: ' + ', '.join(criterion_options))
+
+        rule_to_maximize = int(criterion[4:]) - 1 if criterion.startswith('rule') else None
 
         max_scores = self.get_max_scores(k, profile) if criterion == 'max_appr' else [None] * len(self.rules)
         resolution = 100 if criterion == 'max_appr' else None
@@ -93,11 +96,15 @@ class MultigoalRule:
         model.add_constraint(x, xi, Sense.eq, k)
 
         # Constraint2 - thresholds
-        for rule, max_score in zip(self.rules, max_scores):
+        for i_rule, (rule, max_score) in enumerate(zip(self.rules, max_scores)):
             profile.scores = {}
             rule.rule.initialise_weights(k, profile)
             rule.rule.compute_candidate_scores(k, profile)
             model.add_constraint(x, [profile.scores[i] for i in range(m)], Sense.gt, rule.s)
+
+            if rule_to_maximize == i_rule:
+                model.set_objective_sense(Objective.maximize)
+                model.set_objective(x, [profile.scores[i] for i in range(m)])
 
             if criterion == 'max_appr':
                 model.add_constraint(x + ['a'],

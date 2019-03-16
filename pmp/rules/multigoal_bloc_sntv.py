@@ -1,20 +1,19 @@
+from pmp.rules import SNTV
 from .._common import solve_methods_registry
-
 from .threshold_rule import ThresholdRule
 from .multigoal_rule import MultigoalRule
-from .borda import Borda
 from .bloc import Bloc
 
 algorithm = solve_methods_registry()
 
 
-class MultigoalBlocBorda(MultigoalRule):
+class MultigoalBlocSNTV(MultigoalRule):
     methods = algorithm.registry
 
     def __init__(self, (s1, s2)=(0, 0), weights=None, log_errors=True):
         MultigoalRule.__init__(self,
                                [ThresholdRule(Bloc(), s1),
-                                ThresholdRule(Borda(), s2)],
+                                ThresholdRule(SNTV(), s2)],
                                log_errors=log_errors)
         self.weights = weights
 
